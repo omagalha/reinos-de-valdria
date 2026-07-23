@@ -1,6 +1,6 @@
 # Roteiro de migração
 
-## Marco atual — v4.13
+## Marco atual — v4.14
 
 - aventura atual preservada;
 - fundação Phaser/TypeScript compilando;
@@ -9,15 +9,18 @@
 - aldeia com três estágios;
 - pipeline de assets e direção visual;
 - 86 repositórios classificados.
+- classes, biomas, Guardiões, itens e monstros em uma fonte canônica;
+- adaptador gerado para o cliente Canvas;
+- paridade numérica coberta por testes.
 
-## Etapa 1 — adaptadores entre legado e dados
+## Etapa 1 — adaptadores entre legado e dados — concluída na v4.14
 
 1. fazer as classes do legado lerem \`characterClasses\`;
 2. fazer Guardiões e bestiário lerem os catálogos novos;
 3. comparar dano, HP, vínculo, XP e drops em testes;
 4. manter o render atual.
 
-Concluída quando não houver duplicação de atributos entre \`public/game\` e \`src/game/data\`.
+Concluída: os atributos ficam em \`src/game/data/catalogs.json\`; \`public/game/00-content-bridge.js\` é gerado e não deve ser editado manualmente. Consulte [dados-migrados-v4.14.md](dados-migrados-v4.14.md).
 
 ## Etapa 2 — primeiro mapa Tiled
 

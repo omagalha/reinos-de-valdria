@@ -71,6 +71,7 @@ export const MonsterSchema = z.object({
   levelRange: z.tuple([z.number().int().positive(), z.number().int().positive()]),
   baseHp: z.number().int().positive(),
   baseDamage: z.tuple([z.number().int().nonnegative(), z.number().int().positive()]),
+  experience: z.number().int().nonnegative(),
   behavior: z.enum(['passivo', 'territorial', 'cacador', 'emboscada', 'chefe']),
   drops: z.array(
     z.object({

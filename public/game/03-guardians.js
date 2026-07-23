@@ -1,44 +1,4 @@
 // ---------- 3. GUARDIÕES ----------
-const GUARDIOES = {
-  Folium: {
-    hp: 60,
-    dano: [4, 12],
-    bioma: 'Campos',
-    cor: '#50c050',
-    desc: 'espírito das matas',
-    habilidade: 'Raiz Vital',
-    cdHabilidade: 9000,
-  },
-  Aquari: {
-    hp: 70,
-    dano: [5, 14],
-    bioma: 'Lago',
-    cor: '#50a0e0',
-    desc: 'espírito das águas',
-    habilidade: 'Água Lenta',
-    cdHabilidade: 8500,
-  },
-  Ignix: {
-    hp: 80,
-    dano: [6, 16],
-    bioma: 'Caverna',
-    cor: '#e08030',
-    desc: 'espírito das chamas',
-    habilidade: 'Chama Circular',
-    cdHabilidade: 10000,
-  },
-  Umbrix: {
-    hp: 110,
-    dano: [8, 20],
-    bioma: 'Trono',
-    cor: '#a060e0',
-    desc: 'espírito das sombras (raro)',
-    raro: true,
-    habilidade: 'Marca Sombria',
-    cdHabilidade: 11000,
-  },
-};
-
 const SPAWN_GUARDIOES = [
   { especie: 'Folium', x: 10, y: 24 }, { especie: 'Folium', x: 29, y: 23 },
   { especie: 'Aquari', x: 33, y: 26 }, { especie: 'Aquari', x: 39, y: 30 },
@@ -188,4 +148,3 @@ function expGuardiao(c, qtd) {
   }
 }
 const danoGuardiao = c => rolarDano(GUARDIOES[c.especie].dano) + (c.nivel - 1) * 2;
-

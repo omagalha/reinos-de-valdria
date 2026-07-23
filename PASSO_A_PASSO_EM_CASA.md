@@ -15,7 +15,7 @@ Não abra nem edite os arquivos diretamente dentro do ZIP.
 
 - [Visual Studio Code](https://code.visualstudio.com/).
 
-### Recomendado para a v4.13 completa
+### Recomendado para a v4.14 completa
 
 - [Node.js LTS](https://nodejs.org/) versão 20.19 ou superior.
 
@@ -53,7 +53,7 @@ Clique no endereço exibido no terminal, normalmente \`http://localhost:5173/\`.
 ## 5. Abrir cada versão
 
 - aventura completa atual: \`http://localhost:5173/\`;
-- fundação Phaser v4.13: \`http://localhost:5173/modern.html\`.
+- fundação Phaser v4.14: \`http://localhost:5173/modern.html\`.
 
 No laboratório, use WASD/setas ou toque para mover. As teclas 1, 2 e 3 alternam os estágios da aldeia.
 
@@ -61,7 +61,7 @@ No laboratório, use WASD/setas ou toque para mover. As teclas 1, 2 e 3 alternam
 
 Uma boa primeira edição é trocar a descrição de um bioma:
 
-1. abra \`src/game/data/biomes.ts\`;
+1. abra \`src/game/data/catalogs.json\`;
 2. altere somente o campo \`description\`;
 3. salve com Ctrl+S;
 4. volte ao navegador;
@@ -82,6 +82,7 @@ O resultado correto termina com a build criada e sem linhas vermelhas. Esse coma
 - paridade com o jogo enviado;
 - início, movimento diagonal e save da aventura atual;
 - catálogos e referências cruzadas;
+- ponte entre os catálogos e o jogo Canvas;
 - progressão da aldeia;
 - migração do save antigo;
 - TypeScript;

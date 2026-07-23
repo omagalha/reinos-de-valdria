@@ -12,7 +12,7 @@ if (status) {
 }
 
 if (!validation.success) {
-  throw new Error('Os dados da fundação v4.13 são inválidos: ' + validation.errors.join('; '));
+  throw new Error('Os dados da fundação v4.14 são inválidos: ' + validation.errors.join('; '));
 }
 
 new Phaser.Game(createGameConfig());

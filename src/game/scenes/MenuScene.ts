@@ -31,7 +31,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 140, 'LABORATÓRIO DA FUNDAÇÃO v4.13', {
+      .text(GAME_WIDTH / 2, 140, 'LABORATÓRIO DA FUNDAÇÃO v4.14', {
         color: '#a9c7ad',
         fontFamily: 'Arial, sans-serif',
         fontSize: '15px',

@@ -3,6 +3,10 @@
   "css": "public/styles/game.css",
   "modules": [
     {
+      "file": "public/game/00-content-bridge.js",
+      "generated": true
+    },
+    {
       "file": "public/game/01-world-map.js",
       "bytes": 4872
     },
