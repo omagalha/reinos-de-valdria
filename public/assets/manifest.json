@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "tileSize": 32,
+  "entries": [
+    {
+      "id": "valdria-visual-direction",
+      "type": "concept",
+      "path": "assets/raw/concepts/valdria-visual-direction.png",
+      "license": "generated-original",
+      "status": "reference-only",
+      "attribution": "Direção visual original gerada para este projeto em 2026-07-19; não redistribuir como pacote de assets."
+    },
+    {
+      "id": "valdria-mark",
+      "type": "ui",
+      "path": "icons/valdria-mark.svg",
+      "license": "proprietary-original",
+      "status": "prototype",
+      "attribution": "Símbolo vetorial original criado para Reinos de Valdria."
+    }
+  ]
+}

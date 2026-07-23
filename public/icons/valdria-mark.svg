@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Símbolo original de Reinos de Valdria</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#274a35"/>
+      <stop offset="1" stop-color="#09130e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe49a"/>
+      <stop offset="1" stop-color="#bd8331"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
+  <path d="M256 62 416 126v116c0 105-64 172-160 213C160 414 96 347 96 242V126Z" fill="#17251d" stroke="#cfaa58" stroke-width="20"/>
+  <circle cx="256" cy="198" r="54" fill="url(#gold)" stroke="#fff0b0" stroke-width="10"/>
+  <g fill="#e8bd5d">
+    <path d="m256 91 16 54h-32Z"/>
+    <path d="m256 305-16-54h32Z"/>
+    <path d="m149 198 54-16v32Z"/>
+    <path d="m363 198-54 16v-32Z"/>
+    <path d="m180 122 49 27-22 22Z"/>
+    <path d="m332 274-49-27 22-22Z"/>
+    <path d="m332 122-27 49-22-22Z"/>
+    <path d="m180 274 27-49 22 22Z"/>
+  </g>
+  <path d="m170 279 49 105h74l49-105-48 23-38 51-38-51Z" fill="#5f96a1" stroke="#b9e5df" stroke-width="9" stroke-linejoin="round"/>
+</svg>

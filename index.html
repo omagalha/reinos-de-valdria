@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Reinos de Valdria — Guardiões v4.11 Movimento Fluido</title>
+<link rel="stylesheet" href="./styles/game.css">
+</head>
+<body>
+
+<div id="intro">
+  <h1>REINOS DE VALDRIA</h1>
+  <h2>CAPÍTULO I — O AMULETO ROUBADO</h2>
+  <p>Por gerações, a vila de Valdria prosperou sob a proteção do <b style="color:#d8b25a">Amuleto do Sol</b>.
+Mas numa noite sem estrelas, o <b style="color:#ff5020">Rei Esquelo</b> despertou nas profundezas
+da Caverna Sombria e roubou a relíquia. Sem sua luz, a praga se espalhou pelos campos.</p>
+  <p>Dizem os antigos que <b>centenas de Guardiões</b> — espíritos ancestrais da terra —
+vagam pelos biomas do mundo. Um Guardião só aceita vínculo através de um
+<b>Núcleo de Essência</b>, forjado com fragmentos encontrados em biomas, chefes e missões.
+
+Quem realiza o <b>Ritual de Vínculo</b> com sucesso ganha um companheiro eterno de batalha.</p>
+  <p style="color:#8a8070">
+Você é a última esperança da vila. Procure o Ancião Baldric no templo.
+<br><br>
+<b>Como jogar:</b><br>
+Use o joystick para andar. Toque nos inimigos para mirar. Use a habilidade da sua classe
+para atacar, POÇÃO para curar, FORJAR para criar Núcleos e AÇÃO para conversar, saquear ou fazer vínculo.
+<br><br>
+<b>Novo na v4.10:</b><br>
+A Praia Solar foi aberta ao sudeste do lago, com novo inimigo: Caranguejo.<br>
+Agora existem Contratos de Caça automáticos no painel de missão, dando ouro, XP e materiais extras.
+</p>
+  <div id="seletorClasse">
+    <button class="btn-classe selecionado" data-classe="cavaleiro">
+      ⚔ Cavaleiro<br><small>Vida alta · perto</small>
+    </button>
+    <button class="btn-classe" data-classe="arqueiro">
+      🏹 Arqueiro<br><small>Distância · seguro</small>
+    </button>
+    <button class="btn-classe" data-classe="mago">
+      ✦ Mago<br><small>Mana alta · dano</small>
+    </button>
+  </div>
+  <button id="btnComecar">⚔ COMEÇAR</button>
+  <button id="btnNovo" style="display:none;margin-top:10px;padding:8px 20px;font-size:11px;background:transparent;border:1px solid #7a7060;color:#a89e8e;font-family:inherit">apagar save e recomeçar</button>
+</div>
+
+<div id="palco">
+  <div id="gire">📱↔<br>Gire o celular<br><small style="color:#8a8070;font-size:11px">Reinos de Valdria é jogado na horizontal</small></div>
+  <canvas id="tela" width="640" height="352"></canvas>
+
+  <div id="hud">
+    <div id="infoNivel">
+      Nível <b id="txtNivel">1</b> · <span id="txtGold">0</span> ouro ·
+      <span class="frag">⬡<span id="txtFrag">0</span></span>
+      <span class="nuc">◉<span id="txtNuc">0</span></span>
+    </div>
+    <div class="barra" id="barraHP"><div></div><span id="txtHP"></span></div>
+    <div class="barra" id="barraMP"><div></div><span id="txtMP"></span></div>
+    <div class="barra" id="barraXP"><div></div><span id="txtXP"></span></div>
+    <canvas id="minimapa" width="88" height="80"></canvas>
+    <div id="painelBioma">
+      Bioma: <b id="txtBioma">Campos de Valdria</b>
+    </div>
+    <div id="painelMateriais">
+      <b>Materiais</b>
+      <span id="txtMateriais">nenhum</span>
+    </div>
+  </div>
+
+  <div id="missao"><b>MISSÃO</b><span id="missaoTexto"></span><div id="contratoTexto"></div></div>
+  <button id="btnSom">♪</button>
+  <div id="painelGuardiao"></div>
+  <div id="painelAlvo">
+    <b id="alvoNome"></b> <span id="alvoTipo"></span>
+    <div class="mini"><div id="alvoBarra"></div></div>
+    <span id="alvoHp"></span>
+  </div>
+  <div id="console"></div>
+
+  <div id="joystick">
+    <div id="joyBase">
+      <div id="joyKnob"></div>
+    </div>
+  </div>
+
+  <div id="acoes">
+    <div id="dicaAcao">AÇÃO</div>
+    <button class="btn-acao" id="btnInteragir">AÇÃO<small>perto</small></button>
+    <button class="btn-acao" id="btnEspecial">ESPECIAL<small id="lblEspecial">--</small></button>
+    <button class="btn-acao" id="btnForjar">FORJAR<small id="lblForjar">⬡0/3</small></button>
+    <button class="btn-acao" id="btnMagia">FLAMA<small>20 mana</small></button>
+    <button class="btn-acao" id="btnPocao">POÇÃO<small id="lblPocao">x2</small></button>
+  </div>
+
+  <div id="dialogo">
+    <div id="dialogoCaixa">
+      <div id="dialogoNome"></div>
+      <div id="dialogoTexto"></div>
+      <button id="dialogoBtn">Continuar</button>
+    </div>
+  </div>
+
+  <div id="loja">
+    <div id="lojaCaixa">
+      <div id="lojaTitulo">Loja do Ancião</div>
+      <div id="lojaOuro">Ouro: 0</div>
+      <button id="comprarPocao">Comprar Poção — 15 ouro</button>
+      <button id="comprarFragmento">Comprar Fragmento — 25 ouro</button>
+      <button id="comprarCura">Cura Completa — 40 ouro</button>
+      <button id="fecharLoja">Fechar</button>
+    </div>
+  </div>
+</div>
+
+  <script src="./game/01-world-map.js"></script>
+  <script src="./game/02-entities-content.js"></script>
+  <script src="./game/03-guardians.js"></script>
+  <script src="./game/04-equipment.js"></script>
+  <script src="./game/05-quests-contracts.js"></script>
+  <script src="./game/06-gameplay-ai.js"></script>
+  <script src="./game/07-interactions-shop.js"></script>
+  <script src="./game/08-effects-audio.js"></script>
+  <script src="./game/09-rendering.js"></script>
+  <script src="./game/10-input-ui.js"></script>
+  <script src="./game/11-save-load.js"></script>
+  <script src="./game/12-main-loop.js"></script>
+</body>
+</html>

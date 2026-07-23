@@ -1,0 +1,313 @@
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%; overflow: hidden; background: #0d0b08;
+    font-family: 'Courier New', monospace; touch-action: none; user-select: none;
+  }
+  #palco { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }		
+  canvas#tela {
+    image-rendering: pixelated;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    background: #0d0b08;
+  }
+
+  #hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: max(8px, env(safe-area-inset-top)) 10px 6px;
+    background: linear-gradient(rgba(13,11,8,.85), transparent);
+    pointer-events: none;
+  }
+  .barra { height: 10px; background: #14100c; border: 1px solid #4a4034; margin-bottom: 4px; position: relative; max-width: 240px; }
+  .barra > div { height: 100%; transition: width .2s; }
+  #barraHP > div { background: linear-gradient(#e04040, #8a1a1a); }
+  #barraMP > div { background: linear-gradient(#4060e0, #1a2a8a); }
+  #barraXP > div { background: linear-gradient(#b040e0, #5a1a8a); }
+  .barra span { position: absolute; inset: 0; text-align: center; font-size: 8px; color: #fff; text-shadow: 1px 1px 0 #000; line-height: 10px; }
+  #infoNivel { color: #d8b25a; font-size: 11px; text-shadow: 1px 1px 0 #000; margin-bottom: 3px; }
+  #infoNivel .frag { color: #6ad0c0; } #infoNivel .nuc { color: #b07aff; }
+  #minimapa { image-rendering: pixelated; border: 1px solid #4a4034; margin-top: 4px; display: block; }
+  #painelBioma {
+    margin-top: 4px;
+    max-width: 240px;
+    padding: 3px 5px;
+    background: rgba(20,16,12,.72);
+    border: 1px solid #4a4034;
+    color: #c8c0b0;
+    font-size: 9px;
+    line-height: 1.3;
+    text-shadow: 1px 1px 0 #000;
+  }
+  #painelBioma b {
+    color: #d8b25a;
+  }
+  #painelMateriais {
+    margin-top: 3px;
+    max-width: 240px;
+    padding: 4px 5px;
+    background: rgba(20,16,12,.72);
+    border: 1px solid #3a4a34;
+    color: #a8c8a0;
+    font-size: 8.5px;
+    line-height: 1.35;
+    text-shadow: 1px 1px 0 #000;
+  }
+  #painelMateriais b {
+    color: #d8b25a;
+    display: block;
+    margin-bottom: 2px;
+  }
+  #txtMateriais {
+    color: #c8d8b8;
+  }
+
+  #missao {
+    position: absolute; top: max(8px, env(safe-area-inset-top)); right: 8px;
+    max-width: 260px; padding: 6px 8px;
+    background: rgba(20,16,12,.8); border: 1px solid #4a4034;
+    font-size: 9.5px; color: #c8c0b0; line-height: 1.4; pointer-events: none;
+  }
+  #missao b { color: #d8b25a; display: block; }
+  #contratoTexto {
+    margin-top: 6px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(216,178,90,.35);
+    color: #9fd8c8;
+    font-size: 9px;
+  }
+  #contratoTexto strong {
+    color: #6ad0c0;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  #gire {
+    position: absolute; inset: 0; z-index: 30;
+    background: #0d0b08; color: #d8b25a;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 16px; letter-spacing: 1px; text-align: center; gap: 10px;
+  }
+  @media (orientation: portrait) { #gire { display: flex; } }
+
+  #btnSom {
+    position: absolute; right: 8px; top: calc(max(8px, env(safe-area-inset-top)) + 132px);
+    width: 34px; height: 34px; background: rgba(20,16,12,.8);
+    border: 1px solid #4a4034; color: #c8c0b0; font-size: 15px;
+  }
+
+  #painelGuardiao {
+    position: absolute; left: 12px; bottom: 162px;
+    background: rgba(20,16,12,.85); border: 1px solid #4a6a6a;
+    padding: 5px 8px; font-size: 9px; color: #8ae0d0;
+    display: none; text-shadow: 1px 1px 0 #000;
+    max-width: 210px;
+  }
+  #painelGuardiao .mini { height: 5px; width: 90px; background: #14100c; border: 1px solid #2a4a4a; margin-top: 3px; }
+  #painelGuardiao .mini > div { height: 100%; background: #40c0a0; }
+  #painelGuardiao small { color: #5a8a80; line-height: 1.35; }
+
+  #painelAlvo {
+    position: absolute;
+    top: max(8px, env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20,16,12,.85);
+    border: 1px solid #8a4034;
+    min-width: 120px;
+    max-width: 150px;
+    padding: 4px 8px;
+    font-size: 9px;
+    color: #e8c8b8;
+    text-align: center;
+    display: none;
+    pointer-events: none;
+    text-shadow: 1px 1px 0 #000;
+  }
+  #painelAlvo b { color: #ffb090; }
+  #painelAlvo #alvoTipo { color: #9a8070; font-size: 9px; }
+  #painelAlvo .mini {
+    height: 5px; width: 96px;
+    background: #14100c; border: 1px solid #4a2a24; margin: 3px auto 2px;
+  }
+  #painelAlvo .mini > div { height: 100%; background: #e04040; }
+  #painelAlvo.selvagem { border-color: #4a6a6a; }
+  #painelAlvo.selvagem b { color: #8ae0d0; }
+  #painelAlvo.selvagem .mini > div { background: #40c0a0; }
+
+  #console {
+    position: absolute; left: 160px; right: 152px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    font-size: 11px; line-height: 1.5; pointer-events: none; text-shadow: 1px 1px 0 #000;
+  }
+  #console div { opacity: 0; animation: surge 6s forwards; }
+  @keyframes surge { 0% {opacity:0} 5% {opacity:1} 80% {opacity:1} 100% {opacity:0} }
+  .msg-dano  { color: #ff8a8a; } .msg-loot { color: #ffd87a; }
+  .msg-xp    { color: #d0a0ff; } .msg-info { color: #b0c8d8; }
+  .msg-morte { color: #ff4040; font-weight: bold; }
+  .msg-vinculo { color: #6ad0c0; font-weight: bold; }
+
+  #joystick {
+    position: absolute;
+    left: 14px;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    width: 132px;
+    height: 132px;
+    touch-action: none;
+  }
+  #joyBase {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(90,74,52,.8), rgba(24,18,12,.72));
+    border: 2px solid #4a4034;
+    box-shadow: inset 0 0 18px rgba(0,0,0,.45);
+  }
+  #joyKnob {
+    position: absolute;
+    left: 41px;
+    top: 41px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #d8b25a, #6a4a18);
+    border: 2px solid #8a7048;
+    box-shadow: 0 4px 8px rgba(0,0,0,.45);
+  }
+
+  #acoes {
+    position: absolute;
+    right: 10px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 8px;
+    justify-items: end;
+    align-items: end;
+  }
+  #dicaAcao {
+    grid-column: 1 / 4;
+    justify-self: end;
+  }
+  .btn-acao {
+    width: 60px; height: 60px; border-radius: 50%;
+    border: 2px solid #4a4034; color: #fff;
+    font-family: inherit; font-size: 10px; font-weight: bold;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-shadow: 1px 1px 0 #000;
+  }
+  .btn-acao:active { transform: scale(.92); }
+  .btn-acao.em-recarga { filter: grayscale(.35) brightness(.72); opacity: .78; }
+  .btn-acao.pronto { box-shadow: 0 0 0 2px rgba(216,178,90,.22); }
+  #btnMagia  { background: radial-gradient(circle at 35% 30%, #e07a30, #8a2a10); }
+  #btnPocao  { background: radial-gradient(circle at 35% 30%, #c04a5a, #5a1a2a); }
+  #btnForjar { background: radial-gradient(circle at 35% 30%, #7a5ae0, #2a1a6a); }
+  #btnInteragir { background: radial-gradient(circle at 35% 30%, #d8b25a, #6a4a18); }
+  #btnEspecial  { background: radial-gradient(circle at 35% 30%, #40a0c0, #103a5a); }
+  #dicaAcao {
+    display: none;
+    padding: 4px 7px;
+    background: rgba(20,16,12,.85);
+    border: 1px solid #d8b25a;
+    color: #f0e8d0;
+    font-size: 9px;
+    text-shadow: 1px 1px 0 #000;
+  }
+  .btn-acao small { font-weight: normal; font-size: 8px; opacity: .85; }
+
+  #dialogo {
+    position: absolute; inset: 0; background: rgba(0,0,0,.7);
+    display: none; align-items: flex-end; justify-content: center; padding: 16px; z-index: 10;
+  }
+  #dialogo.aberto { display: flex; }
+  #dialogoCaixa {
+    background: #262019; border: 3px solid #4a4034; max-width: 440px; width: 100%;
+    padding: 14px; margin-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  #dialogoNome { color: #d8b25a; font-size: 14px; margin-bottom: 8px; letter-spacing: 1px; }
+  #dialogoTexto { color: #c8c0b0; font-size: 13px; line-height: 1.6; white-space: pre-line; }
+  #dialogoBtn {
+    margin-top: 12px; width: 100%; padding: 10px;
+    background: #4a4034; border: 2px solid #6a5a44; color: #f0e8d0;
+    font-family: inherit; font-size: 13px;
+  }
+  #dialogoBtn:active { background: #6a5a44; }
+
+  #loja {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.65);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 15;
+  }
+  #loja.aberta {
+    display: flex;
+  }
+  #lojaCaixa {
+    background: #262019;
+    border: 3px solid #4a4034;
+    width: min(360px, 90%);
+    padding: 14px;
+  }
+  #lojaTitulo {
+    color: #d8b25a;
+    font-size: 15px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  #lojaOuro {
+    color: #ffd87a;
+    font-size: 11px;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  #loja button {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    background: #342818;
+    border: 1px solid #6a5a44;
+    color: #f0e8d0;
+    font-family: inherit;
+    font-size: 12px;
+  }
+  #loja button:active {
+    background: #4a4034;
+  }
+
+  #intro {
+    position: absolute; inset: 0; z-index: 20; background: #0d0b08;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; text-align: center; overflow-y: auto;
+  }
+  #intro h1 { color: #d8b25a; font-size: 24px; letter-spacing: 3px; text-shadow: 0 0 20px rgba(216,178,90,.4); margin-bottom: 4px; }
+  #intro h2 { color: #7a7060; font-size: 11px; letter-spacing: 2px; margin-bottom: 18px; }
+  #intro p { color: #c8c0b0; font-size: 12.5px; line-height: 1.75; max-width: 420px; margin-bottom: 18px; }
+  #intro p b { color: #6ad0c0; }
+  #intro button { padding: 14px 40px; background: #4a4034; border: 2px solid #d8b25a; color: #f0e8d0; font-family: inherit; font-size: 15px; letter-spacing: 2px; }
+  #seletorClasse {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 14px;
+  }
+  .btn-classe {
+    padding: 10px;
+    background: #211b15;
+    border: 1px solid #4a4034;
+    color: #c8c0b0;
+    font-family: inherit;
+    font-size: 12px;
+  }
+  .btn-classe small {
+    color: #8a8070;
+    font-size: 10px;
+  }
+  .btn-classe.selecionado {
+    border-color: #d8b25a;
+    color: #f0e8d0;
+    background: #342818;
+  }

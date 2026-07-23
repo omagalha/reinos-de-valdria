@@ -1,0 +1,3756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Reinos de Valdria — Guardiões v4.11 Movimento Fluido</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%; overflow: hidden; background: #0d0b08;
+    font-family: 'Courier New', monospace; touch-action: none; user-select: none;
+  }
+  #palco { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }		
+  canvas#tela {
+    image-rendering: pixelated;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    background: #0d0b08;
+  }
+
+  #hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: max(8px, env(safe-area-inset-top)) 10px 6px;
+    background: linear-gradient(rgba(13,11,8,.85), transparent);
+    pointer-events: none;
+  }
+  .barra { height: 10px; background: #14100c; border: 1px solid #4a4034; margin-bottom: 4px; position: relative; max-width: 240px; }
+  .barra > div { height: 100%; transition: width .2s; }
+  #barraHP > div { background: linear-gradient(#e04040, #8a1a1a); }
+  #barraMP > div { background: linear-gradient(#4060e0, #1a2a8a); }
+  #barraXP > div { background: linear-gradient(#b040e0, #5a1a8a); }
+  .barra span { position: absolute; inset: 0; text-align: center; font-size: 8px; color: #fff; text-shadow: 1px 1px 0 #000; line-height: 10px; }
+  #infoNivel { color: #d8b25a; font-size: 11px; text-shadow: 1px 1px 0 #000; margin-bottom: 3px; }
+  #infoNivel .frag { color: #6ad0c0; } #infoNivel .nuc { color: #b07aff; }
+  #minimapa { image-rendering: pixelated; border: 1px solid #4a4034; margin-top: 4px; display: block; }
+  #painelBioma {
+    margin-top: 4px;
+    max-width: 240px;
+    padding: 3px 5px;
+    background: rgba(20,16,12,.72);
+    border: 1px solid #4a4034;
+    color: #c8c0b0;
+    font-size: 9px;
+    line-height: 1.3;
+    text-shadow: 1px 1px 0 #000;
+  }
+  #painelBioma b {
+    color: #d8b25a;
+  }
+  #painelMateriais {
+    margin-top: 3px;
+    max-width: 240px;
+    padding: 4px 5px;
+    background: rgba(20,16,12,.72);
+    border: 1px solid #3a4a34;
+    color: #a8c8a0;
+    font-size: 8.5px;
+    line-height: 1.35;
+    text-shadow: 1px 1px 0 #000;
+  }
+  #painelMateriais b {
+    color: #d8b25a;
+    display: block;
+    margin-bottom: 2px;
+  }
+  #txtMateriais {
+    color: #c8d8b8;
+  }
+
+  #missao {
+    position: absolute; top: max(8px, env(safe-area-inset-top)); right: 8px;
+    max-width: 260px; padding: 6px 8px;
+    background: rgba(20,16,12,.8); border: 1px solid #4a4034;
+    font-size: 9.5px; color: #c8c0b0; line-height: 1.4; pointer-events: none;
+  }
+  #missao b { color: #d8b25a; display: block; }
+  #contratoTexto {
+    margin-top: 6px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(216,178,90,.35);
+    color: #9fd8c8;
+    font-size: 9px;
+  }
+  #contratoTexto strong {
+    color: #6ad0c0;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  #gire {
+    position: absolute; inset: 0; z-index: 30;
+    background: #0d0b08; color: #d8b25a;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 16px; letter-spacing: 1px; text-align: center; gap: 10px;
+  }
+  @media (orientation: portrait) { #gire { display: flex; } }
+
+  #btnSom {
+    position: absolute; right: 8px; top: calc(max(8px, env(safe-area-inset-top)) + 132px);
+    width: 34px; height: 34px; background: rgba(20,16,12,.8);
+    border: 1px solid #4a4034; color: #c8c0b0; font-size: 15px;
+  }
+
+  #painelGuardiao {
+    position: absolute; left: 12px; bottom: 162px;
+    background: rgba(20,16,12,.85); border: 1px solid #4a6a6a;
+    padding: 5px 8px; font-size: 9px; color: #8ae0d0;
+    display: none; text-shadow: 1px 1px 0 #000;
+    max-width: 210px;
+  }
+  #painelGuardiao .mini { height: 5px; width: 90px; background: #14100c; border: 1px solid #2a4a4a; margin-top: 3px; }
+  #painelGuardiao .mini > div { height: 100%; background: #40c0a0; }
+  #painelGuardiao small { color: #5a8a80; line-height: 1.35; }
+
+  #painelAlvo {
+    position: absolute;
+    top: max(8px, env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20,16,12,.85);
+    border: 1px solid #8a4034;
+    min-width: 120px;
+    max-width: 150px;
+    padding: 4px 8px;
+    font-size: 9px;
+    color: #e8c8b8;
+    text-align: center;
+    display: none;
+    pointer-events: none;
+    text-shadow: 1px 1px 0 #000;
+  }
+  #painelAlvo b { color: #ffb090; }
+  #painelAlvo #alvoTipo { color: #9a8070; font-size: 9px; }
+  #painelAlvo .mini {
+    height: 5px; width: 96px;
+    background: #14100c; border: 1px solid #4a2a24; margin: 3px auto 2px;
+  }
+  #painelAlvo .mini > div { height: 100%; background: #e04040; }
+  #painelAlvo.selvagem { border-color: #4a6a6a; }
+  #painelAlvo.selvagem b { color: #8ae0d0; }
+  #painelAlvo.selvagem .mini > div { background: #40c0a0; }
+
+  #console {
+    position: absolute; left: 160px; right: 152px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    font-size: 11px; line-height: 1.5; pointer-events: none; text-shadow: 1px 1px 0 #000;
+  }
+  #console div { opacity: 0; animation: surge 6s forwards; }
+  @keyframes surge { 0% {opacity:0} 5% {opacity:1} 80% {opacity:1} 100% {opacity:0} }
+  .msg-dano  { color: #ff8a8a; } .msg-loot { color: #ffd87a; }
+  .msg-xp    { color: #d0a0ff; } .msg-info { color: #b0c8d8; }
+  .msg-morte { color: #ff4040; font-weight: bold; }
+  .msg-vinculo { color: #6ad0c0; font-weight: bold; }
+
+  #joystick {
+    position: absolute;
+    left: 14px;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    width: 132px;
+    height: 132px;
+    touch-action: none;
+  }
+  #joyBase {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(90,74,52,.8), rgba(24,18,12,.72));
+    border: 2px solid #4a4034;
+    box-shadow: inset 0 0 18px rgba(0,0,0,.45);
+  }
+  #joyKnob {
+    position: absolute;
+    left: 41px;
+    top: 41px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #d8b25a, #6a4a18);
+    border: 2px solid #8a7048;
+    box-shadow: 0 4px 8px rgba(0,0,0,.45);
+  }
+
+  #acoes {
+    position: absolute;
+    right: 10px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 8px;
+    justify-items: end;
+    align-items: end;
+  }
+  #dicaAcao {
+    grid-column: 1 / 4;
+    justify-self: end;
+  }
+  .btn-acao {
+    width: 60px; height: 60px; border-radius: 50%;
+    border: 2px solid #4a4034; color: #fff;
+    font-family: inherit; font-size: 10px; font-weight: bold;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-shadow: 1px 1px 0 #000;
+  }
+  .btn-acao:active { transform: scale(.92); }
+  .btn-acao.em-recarga { filter: grayscale(.35) brightness(.72); opacity: .78; }
+  .btn-acao.pronto { box-shadow: 0 0 0 2px rgba(216,178,90,.22); }
+  #btnMagia  { background: radial-gradient(circle at 35% 30%, #e07a30, #8a2a10); }
+  #btnPocao  { background: radial-gradient(circle at 35% 30%, #c04a5a, #5a1a2a); }
+  #btnForjar { background: radial-gradient(circle at 35% 30%, #7a5ae0, #2a1a6a); }
+  #btnInteragir { background: radial-gradient(circle at 35% 30%, #d8b25a, #6a4a18); }
+  #btnEspecial  { background: radial-gradient(circle at 35% 30%, #40a0c0, #103a5a); }
+  #dicaAcao {
+    display: none;
+    padding: 4px 7px;
+    background: rgba(20,16,12,.85);
+    border: 1px solid #d8b25a;
+    color: #f0e8d0;
+    font-size: 9px;
+    text-shadow: 1px 1px 0 #000;
+  }
+  .btn-acao small { font-weight: normal; font-size: 8px; opacity: .85; }
+
+  #dialogo {
+    position: absolute; inset: 0; background: rgba(0,0,0,.7);
+    display: none; align-items: flex-end; justify-content: center; padding: 16px; z-index: 10;
+  }
+  #dialogo.aberto { display: flex; }
+  #dialogoCaixa {
+    background: #262019; border: 3px solid #4a4034; max-width: 440px; width: 100%;
+    padding: 14px; margin-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  #dialogoNome { color: #d8b25a; font-size: 14px; margin-bottom: 8px; letter-spacing: 1px; }
+  #dialogoTexto { color: #c8c0b0; font-size: 13px; line-height: 1.6; white-space: pre-line; }
+  #dialogoBtn {
+    margin-top: 12px; width: 100%; padding: 10px;
+    background: #4a4034; border: 2px solid #6a5a44; color: #f0e8d0;
+    font-family: inherit; font-size: 13px;
+  }
+  #dialogoBtn:active { background: #6a5a44; }
+
+  #loja {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.65);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 15;
+  }
+  #loja.aberta {
+    display: flex;
+  }
+  #lojaCaixa {
+    background: #262019;
+    border: 3px solid #4a4034;
+    width: min(360px, 90%);
+    padding: 14px;
+  }
+  #lojaTitulo {
+    color: #d8b25a;
+    font-size: 15px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  #lojaOuro {
+    color: #ffd87a;
+    font-size: 11px;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  #loja button {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    background: #342818;
+    border: 1px solid #6a5a44;
+    color: #f0e8d0;
+    font-family: inherit;
+    font-size: 12px;
+  }
+  #loja button:active {
+    background: #4a4034;
+  }
+
+  #intro {
+    position: absolute; inset: 0; z-index: 20; background: #0d0b08;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; text-align: center; overflow-y: auto;
+  }
+  #intro h1 { color: #d8b25a; font-size: 24px; letter-spacing: 3px; text-shadow: 0 0 20px rgba(216,178,90,.4); margin-bottom: 4px; }
+  #intro h2 { color: #7a7060; font-size: 11px; letter-spacing: 2px; margin-bottom: 18px; }
+  #intro p { color: #c8c0b0; font-size: 12.5px; line-height: 1.75; max-width: 420px; margin-bottom: 18px; }
+  #intro p b { color: #6ad0c0; }
+  #intro button { padding: 14px 40px; background: #4a4034; border: 2px solid #d8b25a; color: #f0e8d0; font-family: inherit; font-size: 15px; letter-spacing: 2px; }
+  #seletorClasse {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 14px;
+  }
+  .btn-classe {
+    padding: 10px;
+    background: #211b15;
+    border: 1px solid #4a4034;
+    color: #c8c0b0;
+    font-family: inherit;
+    font-size: 12px;
+  }
+  .btn-classe small {
+    color: #8a8070;
+    font-size: 10px;
+  }
+  .btn-classe.selecionado {
+    border-color: #d8b25a;
+    color: #f0e8d0;
+    background: #342818;
+  }
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <h1>REINOS DE VALDRIA</h1>
+  <h2>CAPÍTULO I — O AMULETO ROUBADO</h2>
+  <p>Por gerações, a vila de Valdria prosperou sob a proteção do <b style="color:#d8b25a">Amuleto do Sol</b>.
+Mas numa noite sem estrelas, o <b style="color:#ff5020">Rei Esquelo</b> despertou nas profundezas
+da Caverna Sombria e roubou a relíquia. Sem sua luz, a praga se espalhou pelos campos.</p>
+  <p>Dizem os antigos que <b>centenas de Guardiões</b> — espíritos ancestrais da terra —
+vagam pelos biomas do mundo. Um Guardião só aceita vínculo através de um
+<b>Núcleo de Essência</b>, forjado com fragmentos encontrados em biomas, chefes e missões.
+
+Quem realiza o <b>Ritual de Vínculo</b> com sucesso ganha um companheiro eterno de batalha.</p>
+  <p style="color:#8a8070">
+Você é a última esperança da vila. Procure o Ancião Baldric no templo.
+<br><br>
+<b>Como jogar:</b><br>
+Use o joystick para andar. Toque nos inimigos para mirar. Use a habilidade da sua classe
+para atacar, POÇÃO para curar, FORJAR para criar Núcleos e AÇÃO para conversar, saquear ou fazer vínculo.
+<br><br>
+<b>Novo na v4.10:</b><br>
+A Praia Solar foi aberta ao sudeste do lago, com novo inimigo: Caranguejo.<br>
+Agora existem Contratos de Caça automáticos no painel de missão, dando ouro, XP e materiais extras.
+</p>
+  <div id="seletorClasse">
+    <button class="btn-classe selecionado" data-classe="cavaleiro">
+      ⚔ Cavaleiro<br><small>Vida alta · perto</small>
+    </button>
+    <button class="btn-classe" data-classe="arqueiro">
+      🏹 Arqueiro<br><small>Distância · seguro</small>
+    </button>
+    <button class="btn-classe" data-classe="mago">
+      ✦ Mago<br><small>Mana alta · dano</small>
+    </button>
+  </div>
+  <button id="btnComecar">⚔ COMEÇAR</button>
+  <button id="btnNovo" style="display:none;margin-top:10px;padding:8px 20px;font-size:11px;background:transparent;border:1px solid #7a7060;color:#a89e8e;font-family:inherit">apagar save e recomeçar</button>
+</div>
+
+<div id="palco">
+  <div id="gire">📱↔<br>Gire o celular<br><small style="color:#8a8070;font-size:11px">Reinos de Valdria é jogado na horizontal</small></div>
+  <canvas id="tela" width="640" height="352"></canvas>
+
+  <div id="hud">
+    <div id="infoNivel">
+      Nível <b id="txtNivel">1</b> · <span id="txtGold">0</span> ouro ·
+      <span class="frag">⬡<span id="txtFrag">0</span></span>
+      <span class="nuc">◉<span id="txtNuc">0</span></span>
+    </div>
+    <div class="barra" id="barraHP"><div></div><span id="txtHP"></span></div>
+    <div class="barra" id="barraMP"><div></div><span id="txtMP"></span></div>
+    <div class="barra" id="barraXP"><div></div><span id="txtXP"></span></div>
+    <canvas id="minimapa" width="88" height="80"></canvas>
+    <div id="painelBioma">
+      Bioma: <b id="txtBioma">Campos de Valdria</b>
+    </div>
+    <div id="painelMateriais">
+      <b>Materiais</b>
+      <span id="txtMateriais">nenhum</span>
+    </div>
+  </div>
+
+  <div id="missao"><b>MISSÃO</b><span id="missaoTexto"></span><div id="contratoTexto"></div></div>
+  <button id="btnSom">♪</button>
+  <div id="painelGuardiao"></div>
+  <div id="painelAlvo">
+    <b id="alvoNome"></b> <span id="alvoTipo"></span>
+    <div class="mini"><div id="alvoBarra"></div></div>
+    <span id="alvoHp"></span>
+  </div>
+  <div id="console"></div>
+
+  <div id="joystick">
+    <div id="joyBase">
+      <div id="joyKnob"></div>
+    </div>
+  </div>
+
+  <div id="acoes">
+    <div id="dicaAcao">AÇÃO</div>
+    <button class="btn-acao" id="btnInteragir">AÇÃO<small>perto</small></button>
+    <button class="btn-acao" id="btnEspecial">ESPECIAL<small id="lblEspecial">--</small></button>
+    <button class="btn-acao" id="btnForjar">FORJAR<small id="lblForjar">⬡0/3</small></button>
+    <button class="btn-acao" id="btnMagia">FLAMA<small>20 mana</small></button>
+    <button class="btn-acao" id="btnPocao">POÇÃO<small id="lblPocao">x2</small></button>
+  </div>
+
+  <div id="dialogo">
+    <div id="dialogoCaixa">
+      <div id="dialogoNome"></div>
+      <div id="dialogoTexto"></div>
+      <button id="dialogoBtn">Continuar</button>
+    </div>
+  </div>
+
+  <div id="loja">
+    <div id="lojaCaixa">
+      <div id="lojaTitulo">Loja do Ancião</div>
+      <div id="lojaOuro">Ouro: 0</div>
+      <button id="comprarPocao">Comprar Poção — 15 ouro</button>
+      <button id="comprarFragmento">Comprar Fragmento — 25 ouro</button>
+      <button id="comprarCura">Cura Completa — 40 ouro</button>
+      <button id="fecharLoja">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   REINOS DE VALDRIA v4.11 — PRAIA SOLAR + CONTRATOS DE CAÇA
+   Esta versão mantém equipamentos, biomas e diagonal, e adiciona:
+   • Praia Solar no sudeste do mapa
+   • novo inimigo: Caranguejo
+   • material Concha Solar com uso futuro de forja
+   • contratos automáticos de caça para reforçar o loop de progressão
+   ===================================================================== */
+
+// ---------- 1. CONSTANTES, MAPA E PATHFINDING ----------
+const TILE = 32;
+const VISTA_W = 20, VISTA_H = 11;
+const MAPA_W = 44, MAPA_H = 40;
+const BLOQUEIA = { A: true, T: true, M: true };
+const DIR8 = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+
+function gerarMapa() {
+  const m = [];
+  const rnd = (x, y) => {
+    const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+    return n - Math.floor(n);
+  };
+  for (let y = 0; y < MAPA_H; y++) {
+    const linha = [];
+    for (let x = 0; x < MAPA_W; x++) {
+      let t = 'G';
+      if (x < 2 || y < 2 || x >= MAPA_W - 2 || y >= MAPA_H - 2) t = 'T';
+      else if (y < 12) {
+        t = 'P';
+        if (y === 11 && !(x >= 20 && x <= 23)) t = 'M';
+        if (x === 2 || x === MAPA_W - 3 || y === 2) t = 'M';
+        if (y > 3 && y < 10 && rnd(x, y) > 0.92) t = 'M';
+        if (y === 6 && x >= 5 && x <= 14 && x !== 9 && x !== 10) t = 'M';
+        if ((x === 5 || x === 14) && y < 6) t = 'M';
+      }
+      else if (x > 30 && x < 41 && y > 28 && y < 37) {
+        const dx = x - 35.5, dy = y - 32.5;
+        if (dx * dx / 25 + dy * dy / 14 < 1) t = 'A';
+      }
+      else if (rnd(x, y) > 0.90) t = 'T';
+      if (t === 'G' && x >= 20 && x <= 23 && y >= 11 && y <= 30) t = 'D';
+      linha.push(t);
+    }
+    m.push(linha);
+  }
+  for (let y = 28; y <= 32; y++) for (let x = 19; x <= 25; x++)
+    if (m[y][x] === 'T') m[y][x] = 'G';
+
+  // v4.10: Praia Solar. Um mini-bioma costeiro no sudeste do lago.
+  // É pequeno de propósito: abre espaço para exploração sem aumentar demais o escopo.
+  for (let y = 30; y <= 37; y++) {
+    for (let x = 32; x <= 41; x++) {
+      if (x >= MAPA_W - 2 || y >= MAPA_H - 2) continue;
+      if (m[y][x] !== 'A') m[y][x] = 'S';
+    }
+  }
+
+  // caminho simples até a praia, contornando a parte sul do lago
+  for (let y = 30; y <= 36; y++) if (m[y][25] !== 'A') m[y][25] = 'D';
+  for (let x = 25; x <= 33; x++) if (m[36][x] !== 'A') m[36][x] = x >= 32 ? 'S' : 'D';
+
+  return m;
+}
+const mapa = gerarMapa();
+const podeAndar = (x, y) =>
+  x >= 0 && y >= 0 && x < MAPA_W && y < MAPA_H && !BLOQUEIA[mapa[y][x]];
+
+// ---------- MOVIMENTO DIAGONAL SEGURO (v4.7) ----------
+// Permite andar em diagonal, mas impede "cortar quina" por paredes, árvores,
+// água, muros e entidades. Isso deixa o controle mais gostoso sem quebrar o mapa.
+function diagonalLivreMapa(x, y, dx, dy) {
+  if (!(dx && dy)) return true;
+  return podeAndar(x + dx, y) && podeAndar(x, y + dy);
+}
+
+function podeMoverComColisao(entidade, nx, ny) {
+  const dx = nx - entidade.x;
+  const dy = ny - entidade.y;
+
+  if (!podeAndar(nx, ny)) return false;
+
+  if (dx && dy) {
+    if (!diagonalLivreMapa(entidade.x, entidade.y, dx, dy)) return false;
+
+    // Evita atravessar espremido entre duas entidades.
+    if (ocupado(entidade.x + dx, entidade.y)) return false;
+    if (ocupado(entidade.x, entidade.y + dy)) return false;
+  }
+
+  return !ocupado(nx, ny);
+}
+
+function acharCaminho(ini, fim, maxNos = 500) {
+  if (!podeAndar(fim.x, fim.y)) return null;
+  const chave = (x, y) => x * MAPA_H + y;
+  const abertos = [{ x: ini.x, y: ini.y, g: 0, f: 0, pai: null }];
+  const melhorG = new Map([[chave(ini.x, ini.y), 0]]);
+  let nos = 0;
+  while (abertos.length && nos++ < maxNos) {
+    abertos.sort((a, b) => a.f - b.f);
+    const n = abertos.shift();
+    if (n.x === fim.x && n.y === fim.y) {
+      const caminho = [];
+      for (let c = n; c.pai; c = c.pai) caminho.unshift({ x: c.x, y: c.y });
+      return caminho;
+    }
+    for (const [dx, dy] of DIR8) {
+      const nx = n.x + dx, ny = n.y + dy;
+      if (!podeAndar(nx, ny)) continue;
+      if (!diagonalLivreMapa(n.x, n.y, dx, dy)) continue;
+      const g = n.g + (dx && dy ? 14 : 10);
+      const k = chave(nx, ny);
+      if (melhorG.has(k) && melhorG.get(k) <= g) continue;
+      melhorG.set(k, g);
+      const h = Math.max(Math.abs(fim.x - nx), Math.abs(fim.y - ny)) * 10;
+      abertos.push({ x: nx, y: ny, g, f: g + h, pai: n });
+    }
+  }
+  return null;
+}
+
+function tileAdjacenteLivre(alvo) {
+  const opcoes = [
+    { x: alvo.x, y: alvo.y + 1 },
+    { x: alvo.x + 1, y: alvo.y },
+    { x: alvo.x - 1, y: alvo.y },
+    { x: alvo.x, y: alvo.y - 1 },
+    { x: alvo.x + 1, y: alvo.y + 1 },
+    { x: alvo.x - 1, y: alvo.y + 1 },
+    { x: alvo.x + 1, y: alvo.y - 1 },
+    { x: alvo.x - 1, y: alvo.y - 1 },
+  ];
+  return opcoes.find(p => podeAndar(p.x, p.y) && !ocupado(p.x, p.y));
+}
+
+// ---------- 2. ENTIDADES ----------
+const expParaNivel = L => Math.round((50 / 3) * (L ** 3 - 6 * L ** 2 + 17 * L - 12));
+const SPAWN = { x: 22, y: 30 };
+const irand = n => Math.floor(Math.random() * n);
+const rolarDano = ([min, max]) => min + irand(max - min + 1);
+const distCheb = (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+
+const jogador = {
+  x: SPAWN.x, y: SPAWN.y, rx: SPAWN.x * TILE, ry: SPAWN.y * TILE,
+  hp: 150, maxHp: 150, mp: 55, maxMp: 55,
+  nivel: 1, exp: 0, alvo: null, caminho: null,
+  cdMover: 0, cdAtaque: 0, cdMagia: 0,
+  gold: 0, pocoes: 2, temAmuleto: false,
+  fragmentos: 0, nucleos: 0,
+  materiais: {
+    couroRatino: 0,
+    fibraVerde: 0,
+    pedraSombria: 0,
+    ossoAntigo: 0,
+    escamaAzul: 0,
+    essenciaSombria: 0,
+    conchaSolar: 0,
+  },
+  classe: null, alcanceAtaque: 1, danoBase: [2, 8],
+  cdEspecial: 0,
+  escudoAtivo: 0,
+  esquivaAtiva: 0,
+  barreira: 0,
+  persegueAlvo: false,
+  acaoPendente: null,
+  dirX: 0,
+  dirY: 1,
+  equipamentos: {
+    arma: null,
+    armadura: null,
+    amuleto: null,
+  },
+};
+
+const CLASSES = {
+  cavaleiro: {
+    nome: 'Cavaleiro',
+    hp: 190,
+    mp: 35,
+    dano: [5, 13],
+    alcanceAtaque: 1,
+    habilidade: 'GOLPE',
+    custo: 12,
+    alcanceHabilidade: 1,
+    cooldown: 1800,
+    velAtaque: 930,
+    tempoMovimento: 185,
+    especial: 'ESCUDO',
+    desc: 'Resistente, forte de perto.'
+  },
+  arqueiro: {
+    nome: 'Arqueiro',
+    hp: 135,
+    mp: 50,
+    dano: [4, 10],
+    alcanceAtaque: 3,
+    habilidade: 'TIRO',
+    custo: 10,
+    alcanceHabilidade: 5,
+    cooldown: 1600,
+    velAtaque: 820,
+    tempoMovimento: 175,
+    especial: 'ROLAR',
+    desc: 'Ataca de longe e depende de posicionamento.'
+  },
+  mago: {
+    nome: 'Mago',
+    hp: 110,
+    mp: 95,
+    dano: [2, 7],
+    alcanceAtaque: 2,
+    habilidade: 'FLAMA',
+    custo: 20,
+    alcanceHabilidade: 4,
+    cooldown: 2200,
+    velAtaque: 1010,
+    tempoMovimento: 190,
+    especial: 'BARREIRA',
+    desc: 'Frágil, mas causa alto dano mágico.'
+  },
+};
+
+let classeEscolhida = 'cavaleiro';
+
+// ---------- BIOMAS E MATERIAIS v4.9 ----------
+// Sistema simples, sem inventário visual complexo.
+// Objetivo: dar propósito para exploração, drops e futuros upgrades.
+const BIOMAS = {
+  campos: {
+    nome: 'Campos de Valdria',
+    cor: '#7fd36b',
+  },
+  estrada: {
+    nome: 'Estrada Antiga',
+    cor: '#d8b25a',
+  },
+  lago: {
+    nome: 'Lago Azul',
+    cor: '#70b8ff',
+  },
+  caverna: {
+    nome: 'Caverna Sombria',
+    cor: '#a0a0b0',
+  },
+  trono: {
+    nome: 'Trono do Rei Esquelo',
+    cor: '#d080ff',
+  },
+  praia: {
+    nome: 'Praia Solar',
+    cor: '#ffe090',
+  },
+};
+const MATERIAIS = {
+  couroRatino: {
+    nome: 'Couro de Ratino',
+    curto: 'Couro',
+    icone: '▣',
+  },
+  fibraVerde: {
+    nome: 'Fibra Verde',
+    curto: 'Fibra',
+    icone: '♧',
+  },
+  pedraSombria: {
+    nome: 'Pedra Sombria',
+    curto: 'Pedra',
+    icone: '◆',
+  },
+  ossoAntigo: {
+    nome: 'Osso Antigo',
+    curto: 'Osso',
+    icone: '♱',
+  },
+  escamaAzul: {
+    nome: 'Escama Azul',
+    curto: 'Escama',
+    icone: '≈',
+  },
+  essenciaSombria: {
+    nome: 'Essência Sombria',
+    curto: 'Essência',
+    icone: '✦',
+  },
+  conchaSolar: {
+    nome: 'Concha Solar',
+    curto: 'Concha',
+    icone: '◌',
+  },
+};
+function materiaisPadrao() {
+  const base = {};
+  Object.keys(MATERIAIS).forEach(id => {
+    base[id] = 0;
+  });
+  return base;
+}
+function garantirMateriaisJogador() {
+  if (!jogador.materiais) jogador.materiais = materiaisPadrao();
+  for (const id of Object.keys(MATERIAIS)) {
+    if (!Number.isFinite(jogador.materiais[id])) {
+      jogador.materiais[id] = 0;
+    }
+  }
+}
+function textoMaterial(id, qtd) {
+  const mat = MATERIAIS[id];
+  if (!mat || !qtd) return null;
+  return `${mat.nome} x${qtd}`;
+}
+function textoMateriaisCompacto() {
+  garantirMateriaisJogador();
+  const partes = Object.entries(MATERIAIS)
+    .map(([id, mat]) => {
+      const qtd = jogador.materiais[id] || 0;
+      if (qtd <= 0) return null;
+      return `${mat.icone}${mat.curto} ${qtd}`;
+    })
+    .filter(Boolean);
+  return partes.length ? partes.join(' · ') : 'nenhum';
+}
+function receberMateriais(lista) {
+  garantirMateriaisJogador();
+  if (!lista) return '';
+  const partes = [];
+  for (const [id, qtd] of Object.entries(lista)) {
+    if (!MATERIAIS[id] || qtd <= 0) continue;
+    jogador.materiais[id] += qtd;
+    partes.push(textoMaterial(id, qtd));
+  }
+  return partes.filter(Boolean).join(', ');
+}
+function temMateriais(req) {
+  garantirMateriaisJogador();
+  if (!req) return true;
+  return Object.entries(req).every(([id, qtd]) => {
+    return (jogador.materiais[id] || 0) >= qtd;
+  });
+}
+function textoFaltandoMateriais(req) {
+  garantirMateriaisJogador();
+  if (!req) return '';
+  const faltando = [];
+  for (const [id, qtd] of Object.entries(req)) {
+    const atual = jogador.materiais[id] || 0;
+    if (atual < qtd) {
+      const mat = MATERIAIS[id];
+      faltando.push(`${mat ? mat.nome : id} ${atual}/${qtd}`);
+    }
+  }
+  return faltando.join(', ');
+}
+function gastarMateriais(req) {
+  garantirMateriaisJogador();
+  if (!req) return;
+  for (const [id, qtd] of Object.entries(req)) {
+    jogador.materiais[id] = Math.max(0, (jogador.materiais[id] || 0) - qtd);
+  }
+}
+function juntarMateriais(...listas) {
+  const total = {};
+  for (const lista of listas) {
+    if (!lista) continue;
+    for (const [id, qtd] of Object.entries(lista)) {
+      total[id] = (total[id] || 0) + qtd;
+    }
+  }
+  return total;
+}
+function chanceMaterial(id, chance, min = 1, max = 1) {
+  if (Math.random() > chance) return {};
+  return {
+    [id]: min + irand(max - min + 1),
+  };
+}
+function biomaNoTile(x, y) {
+  const t = mapa[y] && mapa[y][x];
+  if (y < 12) {
+    if (x <= 15 && y <= 7) return 'trono';
+    return 'caverna';
+  }
+  if (t === 'S') return 'praia';
+  if (t === 'A') return 'lago';
+  if (x > 30 && y > 24 && t !== 'S') return 'lago';
+  if (t === 'D') return 'estrada';
+  return 'campos';
+}
+function biomaJogador() {
+  return biomaNoTile(jogador.x, jogador.y);
+}
+let ultimoBiomaVisitado = null;
+function tickBioma() {
+  const id = biomaJogador();
+  if (id === ultimoBiomaVisitado) return;
+  ultimoBiomaVisitado = id;
+  const b = BIOMAS[id];
+  if (b) {
+    log(`Você entrou em: ${b.nome}.`, 'info');
+  }
+}
+
+const GANHO_NIVEL_CLASSE = {
+  cavaleiro: { hp: 18, mp: 7 },
+  arqueiro:  { hp: 13, mp: 11 },
+  mago:      { hp: 9,  mp: 18 },
+};
+function aplicarClasse(id) {
+  const c = CLASSES[id];
+  if (!c) return;
+  jogador.classe = id;
+  jogador.maxHp = c.hp;
+  jogador.hp = c.hp;
+  jogador.maxMp = c.mp;
+  jogador.mp = c.mp;
+  jogador.danoBase = c.dano;
+  jogador.alcanceAtaque = c.alcanceAtaque;
+  document.querySelector('#btnMagia').childNodes[0].nodeValue = c.habilidade;
+  document.querySelector('#btnMagia small').textContent = `${c.custo} mana`;
+}
+
+document.querySelectorAll('.btn-classe').forEach(btn => {
+  btn.addEventListener('click', () => {
+    classeEscolhida = btn.dataset.classe;
+    document.querySelectorAll('.btn-classe')
+      .forEach(b => b.classList.remove('selecionado'));
+    btn.classList.add('selecionado');
+  });
+});
+
+const BESTIARIO = {
+  Ratino: {
+    hp: 25,
+    dano: [1, 8],
+    exp: 5,
+    vel: 350,
+    visao: 5,
+    loot: () => ({
+      gold: 1 + irand(3),
+      fragmentos: Math.random() < .35 ? 1 : 0,
+      materiais: juntarMateriais(
+        chanceMaterial('couroRatino', .55, 1, 1),
+        chanceMaterial('fibraVerde', .20, 1, 1)
+      ),
+    }),
+  },
+  Caranguejo: {
+    hp: 42,
+    dano: [2, 12],
+    exp: 14,
+    vel: 430,
+    visao: 5,
+    loot: () => ({
+      gold: 3 + irand(6),
+      fragmentos: Math.random() < .25 ? 1 : 0,
+      materiais: juntarMateriais(
+        chanceMaterial('conchaSolar', .75, 1, 2),
+        chanceMaterial('escamaAzul', .25, 1, 1)
+      ),
+    }),
+  },
+  Trolk: {
+    hp: 60,
+    dano: [3, 15],
+    exp: 20,
+    vel: 500,
+    visao: 6,
+    loot: () => ({
+      gold: 4 + irand(9),
+      pocoes: Math.random() < .25 ? 1 : 0,
+      fragmentos: Math.random() < .55 ? 1 : 0,
+      materiais: juntarMateriais(
+        chanceMaterial('pedraSombria', .60, 1, 1),
+        chanceMaterial('couroRatino', .25, 1, 1)
+      ),
+    }),
+  },
+  Esquelo: {
+    hp: 100,
+    dano: [6, 22],
+    exp: 35,
+    vel: 450,
+    visao: 7,
+    alcance: 4,
+    cdTiro: 1700,
+    danoTiro: [4, 16],
+    projetil: '#e8e4d8',
+    loot: () => ({
+      gold: 8 + irand(14),
+      pocoes: Math.random() < .3 ? 1 : 0,
+      fragmentos: Math.random() < .75 ? 1 + irand(2) : 0,
+      materiais: juntarMateriais(
+        chanceMaterial('ossoAntigo', .70, 1, 2),
+        chanceMaterial('pedraSombria', .35, 1, 1)
+      ),
+    }),
+  },
+  ReiEsquelo: {
+    hp: 350,
+    dano: [12, 34],
+    exp: 250,
+    vel: 550,
+    visao: 9,
+    boss: true,
+    alcance: 5,
+    cdTiro: 2200,
+    danoTiro: [10, 26],
+    projetil: '#ff7020',
+    loot: () => ({
+      gold: 120,
+      pocoes: 3,
+      fragmentos: 6,
+      amuleto: true,
+      materiais: {
+        essenciaSombria: 3,
+        ossoAntigo: 4,
+        pedraSombria: 2,
+      },
+    }),
+  },
+};
+
+const PONTOS_SPAWN = [
+  { tipo: 'Ratino',  x: 12, y: 22 }, { tipo: 'Ratino',  x: 30, y: 20 },
+  { tipo: 'Ratino',  x: 16, y: 32 }, { tipo: 'Ratino',  x: 27, y: 26 },
+  { tipo: 'Ratino',  x: 8,  y: 28 }, { tipo: 'Ratino',  x: 33, y: 15 },
+  { tipo: 'Caranguejo', x: 40, y: 35 }, { tipo: 'Caranguejo', x: 33, y: 36 },
+  { tipo: 'Caranguejo', x: 38, y: 36 }, { tipo: 'Caranguejo', x: 37, y: 37 },
+  { tipo: 'Trolk',   x: 10, y: 8  }, { tipo: 'Trolk',   x: 30, y: 6  },
+  { tipo: 'Trolk',   x: 21, y: 9  }, { tipo: 'Trolk',   x: 26, y: 8  },
+  { tipo: 'Esquelo', x: 17, y: 4  }, { tipo: 'Esquelo', x: 27, y: 4  },
+  { tipo: 'Esquelo', x: 22, y: 6  },
+  { tipo: 'ReiEsquelo', x: 9, y: 4 },
+];
+
+let monstros = [], corpos = [];
+function nascerMonstro(ponto) {
+  const base = BESTIARIO[ponto.tipo];
+  monstros.push({
+    tipo: ponto.tipo,
+    x: ponto.x,
+    y: ponto.y,
+    rx: ponto.x * TILE,
+    ry: ponto.y * TILE,
+    hp: base.hp,
+    maxHp: base.hp,
+    cdMover: irand(500),
+    cdAtaque: 0,
+    cdEspecial: ponto.tipo === 'ReiEsquelo' ? 3500 : 0,
+    spawn: ponto,
+  });
+}
+PONTOS_SPAWN.forEach(nascerMonstro);
+
+const NPC = { nome: 'Ancião Baldric', x: 20, y: 29, rx: 20 * TILE, ry: 29 * TILE };
+
+let baus = [
+  {
+    x: 24,
+    y: 26,
+    aberto: false,
+    loot: {
+      gold: 25,
+      pocoes: 1,
+      materiais: {
+        couroRatino: 2,
+      },
+    },
+  },
+  {
+    x: 32,
+    y: 29,
+    aberto: false,
+    loot: {
+      fragmentos: 2,
+      materiais: {
+        escamaAzul: 1,
+        fibraVerde: 1,
+      },
+    },
+  },
+  {
+    x: 13,
+    y: 7,
+    aberto: false,
+    loot: {
+      gold: 50,
+      nucleos: 1,
+      materiais: {
+        ossoAntigo: 2,
+        pedraSombria: 2,
+      },
+    },
+  },
+];
+for (const b of baus) if (!podeAndar(b.x, b.y)) mapa[b.y][b.x] = b.y < 12 ? 'P' : 'G';
+
+let santuarios = [
+  { x: 27, y: 22, usado: false, tRecarga: 0 },
+  { x: 18, y: 9,  usado: false, tRecarga: 0 },
+];
+const RECARGA_SANTUARIO = 180000;
+for (const s of santuarios) if (!podeAndar(s.x, s.y)) mapa[s.y][s.x] = s.y < 12 ? 'P' : 'G';
+
+// ---------- 3. GUARDIÕES ----------
+const GUARDIOES = {
+  Folium: {
+    hp: 60,
+    dano: [4, 12],
+    bioma: 'Campos',
+    cor: '#50c050',
+    desc: 'espírito das matas',
+    habilidade: 'Raiz Vital',
+    cdHabilidade: 9000,
+  },
+  Aquari: {
+    hp: 70,
+    dano: [5, 14],
+    bioma: 'Lago',
+    cor: '#50a0e0',
+    desc: 'espírito das águas',
+    habilidade: 'Água Lenta',
+    cdHabilidade: 8500,
+  },
+  Ignix: {
+    hp: 80,
+    dano: [6, 16],
+    bioma: 'Caverna',
+    cor: '#e08030',
+    desc: 'espírito das chamas',
+    habilidade: 'Chama Circular',
+    cdHabilidade: 10000,
+  },
+  Umbrix: {
+    hp: 110,
+    dano: [8, 20],
+    bioma: 'Trono',
+    cor: '#a060e0',
+    desc: 'espírito das sombras (raro)',
+    raro: true,
+    habilidade: 'Marca Sombria',
+    cdHabilidade: 11000,
+  },
+};
+
+const SPAWN_GUARDIOES = [
+  { especie: 'Folium', x: 10, y: 24 }, { especie: 'Folium', x: 29, y: 23 },
+  { especie: 'Aquari', x: 33, y: 26 }, { especie: 'Aquari', x: 39, y: 30 },
+  { especie: 'Ignix',  x: 14, y: 9  }, { especie: 'Ignix',  x: 33, y: 7  },
+  { especie: 'Umbrix', x: 12, y: 4  },
+];
+
+let selvagens = [];
+function nascerGuardiao(ponto) {
+  const base = GUARDIOES[ponto.especie];
+  selvagens.push({ especie: ponto.especie, selvagem: true,
+    x: ponto.x, y: ponto.y, rx: ponto.x * TILE, ry: ponto.y * TILE,
+    hp: base.hp, maxHp: base.hp, cdMover: irand(700), spawn: ponto });
+}
+SPAWN_GUARDIOES.forEach(nascerGuardiao);
+
+let equipe = [];
+let ativo = 0;
+
+const chanceVinculo = g => Math.min(0.9, 0.25 + 0.65 * (1 - Math.max(0, g.hp) / g.maxHp));
+
+function forjarNucleo() {
+  if (jogador.fragmentos < 3)
+    return log(`Faltam fragmentos (⬡${jogador.fragmentos}/3). Cace monstros para conseguir mais.`, 'info');
+  jogador.fragmentos -= 3;
+  jogador.nucleos++;
+  som('ritual');
+  log('◉ Você forjou um Núcleo de Essência!', 'vinculo');
+  checarMissao();
+  salvarJogo();
+}
+
+function ritualDeVinculo(g) {
+  if (equipe.some(e => e.especie === g.especie))
+    return log(`Você já tem vínculo com ${g.especie}. Procure outras espécies para completar a coleção.`, 'info');
+  if (jogador.nucleos < 1)
+    return log('Você precisa de um Núcleo de Essência (◉) para o ritual. Forje com 3 fragmentos.', 'info');
+  jogador.nucleos--;
+  const chance = chanceVinculo(g);
+  efeitos.push({ x: g.x, y: g.y, tipo: 'ritual', tempo: 800 });
+  if (Math.random() < chance) {
+    som('vinculo');
+    selvagens = selvagens.filter(s => s !== g);
+    if (jogador.alvo === g) jogador.alvo = null;
+    equipe.push({
+      especie: g.especie,
+      hp: g.maxHp,
+      maxHp: g.maxHp,
+      x: jogador.x,
+      y: jogador.y,
+      rx: jogador.rx,
+      ry: jogador.ry,
+      nivel: 1,
+      exp: 0,
+      cdMover: 0,
+      cdAtaque: 0,
+      cdHabilidade: 2500,
+      desmaiado: false,
+      tRevive: 0,
+    });
+    if (equipe.length === 1) ativo = 0;
+    log(`✦ VÍNCULO REALIZADO! ${g.especie}, ${GUARDIOES[g.especie].desc}, agora luta ao seu lado.`, 'vinculo');
+    if (equipe.length === Object.keys(GUARDIOES).length && !jogador.bencao) {
+      jogador.bencao = true;
+      jogador.maxHp += 30;
+      jogador.maxMp += 30;
+      jogador.hp = maxHpAtual();
+      jogador.mp = maxMpAtual();
+      som('vinculo');
+      log('✦✦ COLEÇÃO COMPLETA! A Bênção dos Guardiões concede +30 de vida e mana máximas!', 'vinculo');
+    }
+    setTimeout(() => nascerGuardiao(g.spawn), 45000);
+    ganharExp(30);
+    checarMissao();
+    salvarJogo();
+  } else {
+    som('falha');
+    log(`O ritual falhou (${Math.round(chance * 100)}%). ${g.especie} recuou. Enfraqueça-o mais!`, 'info');
+    for (let i = 0; i < 8; i++) {
+      const nx = g.x - 2 + irand(5), ny = g.y - 2 + irand(5);
+      if (podeAndar(nx, ny) && !ocupado(nx, ny)) { g.x = nx; g.y = ny; break; }
+    }
+    salvarJogo();
+  }
+}
+
+function materialDoGuardiao(especie) {
+  switch (especie) {
+    case 'Folium':
+      return {
+        fibraVerde: 2,
+      };
+    case 'Aquari':
+      return {
+        escamaAzul: 2,
+      };
+    case 'Ignix':
+      return {
+        pedraSombria: 2,
+      };
+    case 'Umbrix':
+      return {
+        essenciaSombria: 1,
+      };
+    default:
+      return {};
+  }
+}
+
+const companheiro = () => (equipe[ativo] && !equipe[ativo].desmaiado) ? equipe[ativo] : null;
+
+function curarEquipeCompleta() {
+  for (const g of equipe) {
+    g.desmaiado = false;
+    g.tRevive = 0;
+    g.hp = g.maxHp;
+  }
+}
+function curarGuardiaoAtivo(qtd) {
+  const c = companheiro();
+  if (!c) return 0;
+  const antes = c.hp;
+  c.hp = Math.min(c.maxHp, c.hp + qtd);
+  return c.hp - antes;
+}
+
+function trocarGuardiao() {
+  if (equipe.length < 2) return;
+  ativo = (ativo + 1) % equipe.length;
+  const c = equipe[ativo];
+  c.x = jogador.x; c.y = jogador.y; c.rx = jogador.rx; c.ry = jogador.ry;
+  log(`${c.especie} agora é o Guardião ativo.`, 'vinculo');
+}
+
+function expGuardiao(c, qtd) {
+  c.exp += qtd;
+  const prox = () => 40 * c.nivel * (c.nivel + 1);
+  while (c.exp >= prox()) {
+    c.exp -= prox();
+    c.nivel++;
+    const ganhoHp = 10 + Math.floor(c.nivel * 1.5);
+    c.maxHp += ganhoHp;
+    c.hp = c.maxHp;
+    som('levelup');
+    flutuar(c, 'LEVEL UP!', '#40c0a0');
+    log(`✦ ${c.especie} alcançou o nível ${c.nivel}! +${ganhoHp} HP`, 'vinculo');
+  }
+}
+const danoGuardiao = c => rolarDano(GUARDIOES[c.especie].dano) + (c.nivel - 1) * 2;
+
+// ---------- EQUIPAMENTOS v4.6 ----------
+const RARIDADES = {
+  comum:    { nome: 'Comum',    cor: '#c8c0b0', mult: 1.0 },
+  raro:     { nome: 'Raro',     cor: '#50a0e0', mult: 1.35 },
+  epico:    { nome: 'Épico',    cor: '#b070ff', mult: 1.75 },
+  lendario: { nome: 'Lendário', cor: '#ffd87a', mult: 2.35 },
+};
+
+const ARMAS_POR_CLASSE = {
+  cavaleiro: ['Espada', 'Machado', 'Lança'],
+  arqueiro: ['Arco', 'Besta', 'Lâmina Curta'],
+  mago: ['Cajado', 'Grimório', 'Orbe'],
+};
+
+const PREFIXOS_EQUIP = {
+  armadura: ['Armadura', 'Cota', 'Couraça', 'Manto', 'Peitoral'],
+  amuleto: ['Amuleto', 'Medalhão', 'Talismã', 'Relíquia', 'Símbolo'],
+};
+
+const SUFIXOS_EQUIP = [
+  'do Sol',
+  'da Caverna',
+  'dos Guardiões',
+  'da Praga',
+  'de Valdria',
+  'do Eco Antigo',
+  'da Chama Morta',
+  'da Praia Solar',
+];
+
+function garantirEquipamentos() {
+  if (!jogador.equipamentos) {
+    jogador.equipamentos = { arma: null, armadura: null, amuleto: null };
+  }
+  if (!('arma' in jogador.equipamentos)) jogador.equipamentos.arma = null;
+  if (!('armadura' in jogador.equipamentos)) jogador.equipamentos.armadura = null;
+  if (!('amuleto' in jogador.equipamentos)) jogador.equipamentos.amuleto = null;
+}
+
+function escolherRaridade(tipoMonstro) {
+  const boss = tipoMonstro === 'ReiEsquelo';
+  const r = Math.random();
+
+  if (boss) {
+    if (r < 0.18) return 'lendario';
+    if (r < 0.55) return 'epico';
+    return 'raro';
+  }
+
+  if (r < 0.015) return 'lendario';
+  if (r < 0.08) return 'epico';
+  if (r < 0.28) return 'raro';
+  return 'comum';
+}
+
+function chanceDropEquip(tipoMonstro) {
+  if (tipoMonstro === 'ReiEsquelo') return 1.0;
+  if (tipoMonstro === 'Esquelo') return 0.28;
+  if (tipoMonstro === 'Trolk') return 0.20;
+  if (tipoMonstro === 'Caranguejo') return 0.16;
+  if (tipoMonstro === 'Ratino') return 0.10;
+  return 0.08;
+}
+
+function criarEquipamento(tipoMonstro) {
+  if (Math.random() > chanceDropEquip(tipoMonstro)) return null;
+
+  const slots = ['arma', 'armadura', 'amuleto'];
+  const slot = slots[irand(slots.length)];
+  const raridade = escolherRaridade(tipoMonstro);
+  const dadosRaridade = RARIDADES[raridade];
+
+  const nivelBase = Math.max(1, jogador.nivel);
+  const poder = Math.max(1, Math.round((nivelBase + irand(3)) * dadosRaridade.mult));
+
+  let prefixo = '';
+  if (slot === 'arma') {
+    const lista = ARMAS_POR_CLASSE[jogador.classe || 'cavaleiro'];
+    prefixo = lista[irand(lista.length)];
+  } else {
+    prefixo = PREFIXOS_EQUIP[slot][irand(PREFIXOS_EQUIP[slot].length)];
+  }
+
+  const sufixo = SUFIXOS_EQUIP[irand(SUFIXOS_EQUIP.length)];
+
+  const item = {
+    slot,
+    raridade,
+    nome: `${prefixo} ${sufixo}`,
+    poder,
+    dano: 0,
+    defesa: 0,
+    vida: 0,
+    mana: 0,
+    xpBonus: 0,
+    curaBonus: 0,
+  };
+
+  if (slot === 'arma') {
+    item.dano = poder;
+  }
+
+  if (slot === 'armadura') {
+    item.defesa = Math.max(1, Math.floor(poder * 0.75));
+    item.vida = poder * 3;
+  }
+
+  if (slot === 'amuleto') {
+    const tipoBonus = irand(3);
+    if (tipoBonus === 0) item.mana = poder * 3;
+    if (tipoBonus === 1) item.xpBonus = Math.min(0.25, 0.03 + poder * 0.01);
+    if (tipoBonus === 2) item.curaBonus = Math.min(0.35, 0.05 + poder * 0.015);
+  }
+
+  return item;
+}
+
+function poderEquipamento(item) {
+  if (!item) return 0;
+  return (
+    item.dano * 3 +
+    item.defesa * 3 +
+    item.vida * 0.5 +
+    item.mana * 0.5 +
+    item.xpBonus * 100 +
+    item.curaBonus * 100 +
+    item.poder
+  );
+}
+
+function descreverEquipamento(item) {
+  if (!item) return 'nenhum';
+
+  const partes = [];
+  if (item.dano) partes.push(`+${item.dano} dano`);
+  if (item.defesa) partes.push(`+${item.defesa} defesa`);
+  if (item.vida) partes.push(`+${item.vida} vida`);
+  if (item.mana) partes.push(`+${item.mana} mana`);
+  if (item.xpBonus) partes.push(`+${Math.round(item.xpBonus * 100)}% XP`);
+  if (item.curaBonus) partes.push(`+${Math.round(item.curaBonus * 100)}% cura`);
+
+  return `${item.nome} [${RARIDADES[item.raridade].nome}] — ${partes.join(', ')}`;
+}
+
+function nomeEquipCurto(item) {
+  if (!item) return '—';
+  return `${item.nome} (${RARIDADES[item.raridade].nome})`;
+}
+
+function bonusEquip() {
+  garantirEquipamentos();
+
+  const itens = [
+    jogador.equipamentos.arma,
+    jogador.equipamentos.armadura,
+    jogador.equipamentos.amuleto,
+  ].filter(Boolean);
+
+  return itens.reduce((acc, item) => {
+    acc.dano += item.dano || 0;
+    acc.defesa += item.defesa || 0;
+    acc.vida += item.vida || 0;
+    acc.mana += item.mana || 0;
+    acc.xpBonus += item.xpBonus || 0;
+    acc.curaBonus += item.curaBonus || 0;
+    return acc;
+  }, {
+    dano: 0,
+    defesa: 0,
+    vida: 0,
+    mana: 0,
+    xpBonus: 0,
+    curaBonus: 0,
+  });
+}
+
+function maxHpAtual() {
+  return jogador.maxHp + bonusEquip().vida;
+}
+
+function maxMpAtual() {
+  return jogador.maxMp + bonusEquip().mana;
+}
+
+function tentarEquipar(item) {
+  if (!item) return false;
+
+  garantirEquipamentos();
+
+  const atual = jogador.equipamentos[item.slot];
+  const novoPoder = poderEquipamento(item);
+  const poderAtual = poderEquipamento(atual);
+
+  if (!atual || novoPoder > poderAtual) {
+    const bonusAntes = bonusEquip();
+
+    jogador.equipamentos[item.slot] = item;
+
+    const bonusDepois = bonusEquip();
+    const ganhoVida = Math.max(0, bonusDepois.vida - bonusAntes.vida);
+    const ganhoMana = Math.max(0, bonusDepois.mana - bonusAntes.mana);
+
+    jogador.hp = Math.min(maxHpAtual(), jogador.hp + ganhoVida);
+    jogador.mp = Math.min(maxMpAtual(), jogador.mp + ganhoMana);
+
+    som('moeda');
+    flutuar(jogador, 'EQUIPADO!', RARIDADES[item.raridade].cor);
+    log(`⬥ Equipado: ${descreverEquipamento(item)}`, 'loot');
+
+    salvarJogo();
+    return true;
+  }
+
+  const ouroExtra = Math.max(3, Math.floor(item.poder * 2));
+  jogador.gold += ouroExtra;
+
+  log(`⬥ Item inferior vendido por ${ouroExtra} ouro: ${item.nome}.`, 'loot');
+  salvarJogo();
+  return false;
+}
+
+// ---------- 4. MISSÕES E HISTÓRIA ----------
+const mortes = { Ratino: 0, Caranguejo: 0, Trolk: 0, Esquelo: 0, ReiEsquelo: 0 };
+
+const MISSOES = [
+  {
+    objetivo: 'Fale com o Ancião Baldric no templo (marcado com !)',
+    completa: () => false,
+    dialogo: [
+      'Ah... você veio. Os deuses ainda ouvem nossas preces.\n\nDesde que o Rei Esquelo roubou o Amuleto do Sol, a escuridão avança. Mas sozinho, você não chegará ao trono dele.',
+      'Escute o segredo dos antigos: GUARDIÕES — espíritos da terra — vagam pelos biomas. Os monstros da praga derrubam FRAGMENTOS DE ESSÊNCIA (⬡). Junte 3 e FORJE um Núcleo de Essência (◉).',
+      'Depois, encontre um Guardião selvagem, ENFRAQUEÇA-O em combate e, adjacente a ele, toque-o para o RITUAL DE VÍNCULO. Quanto mais ferido, maior a chance de ele aceitar você.\n\nVincule seu primeiro Guardião e volte. Tome estes fragmentos para começar.',
+    ],
+    recompensa: () => { jogador.gold += 20; jogador.fragmentos += 2; },
+  },
+  {
+    objetivo: 'Realize o Ritual de Vínculo com um Guardião',
+    completa: () => equipe.length >= 1,
+    progresso: () => `⬡${jogador.fragmentos} · ◉${jogador.nucleos} — Folium vive nos campos`,
+    aoCompletar: 'Vínculo realizado! Volte ao Ancião Baldric.',
+    dialogo: [
+      'Um Guardião ao seu lado... você aprende rápido, herói. Ele lutará com você, atacará seus alvos, tomará golpes em seu lugar — e ficará mais forte a cada caçada.',
+      'Agora prove seu valor em combate: a praga trouxe RATINOS aos campos. Elimine 3 deles e volte.\n\nDica: alguns monstros agora carregam equipamentos antigos. Saqueie corpos brilhantes para melhorar seu herói.',
+    ],
+    recompensa: () => { jogador.gold += 30; },
+  },
+  {
+    objetivo: 'Elimine 3 Ratinos nos campos',
+    completa: () => mortes.Ratino >= 3,
+    progresso: () => `${Math.min(3, mortes.Ratino)}/3 Ratinos`,
+    aoCompletar: 'Missão completa! Volte ao Ancião Baldric.',
+    dialogo: [
+      'Excelente! Os campos respiram de novo.\n\nMas as notícias são graves: os TROLKS da caverna juraram lealdade ao Rei Esquelo e guardam a entrada norte.',
+      'Siga a trilha de terra até a caverna e derrote 2 Trolks. Eles batem forte — leve estas poções, e estes fragmentos que os aldeões recolheram.\n\nE cuidado com os ESQUELOS lá dentro: eles atiram ossos de longe.',
+    ],
+    recompensa: () => { jogador.gold += 50; jogador.pocoes += 3; jogador.fragmentos += 3; },
+  },
+  {
+    objetivo: 'Derrote 2 Trolks na entrada da caverna',
+    completa: () => mortes.Trolk >= 2,
+    progresso: () => `${Math.min(2, mortes.Trolk)}/2 Trolks`,
+    aoCompletar: 'Missão completa! Volte ao Ancião Baldric.',
+    dialogo: [
+      'Você voltou vivo da caverna... impressionante.\n\nAgora escute: no fundo, atrás de uma câmara murada a noroeste, o REI ESQUELO aguarda em seu trono com o Amuleto do Sol.',
+      'Ele foi o primeiro rei de Valdria, corrompido pela promessa de vida eterna. Ele lança chamas mortas à distância — não fique parado!\n\nLeve seu Guardião. Mate o Rei, recupere o amuleto e traga-o de volta.',
+    ],
+    recompensa: () => { jogador.gold += 80; jogador.maxHp += 25; jogador.hp = maxHpAtual(); },
+  },
+  {
+    objetivo: 'Derrote o Rei Esquelo e recupere o Amuleto do Sol',
+    completa: () => jogador.temAmuleto,
+    progresso: () => jogador.temAmuleto ? 'Amuleto recuperado!' : 'O trono fica a noroeste da caverna',
+    aoCompletar: 'Você recuperou o Amuleto do Sol! Leve-o ao Ancião Baldric.',
+    dialogo: [
+      'O... o Amuleto do Sol! Sua luz voltou a brilhar!\n\nVocê fez o que gerações de heróis não conseguiram. O Rei Esquelo finalmente descansa, e Valdria está salva.',
+      'A vila jamais esquecerá seu nome, herói.\n\n═══ FIM DO CAPÍTULO I ═══\n\n(Mundo livre: cace, vincule os 4 Guardiões, evolua-os e procure equipamentos melhores.)',
+    ],
+    recompensa: () => { jogador.gold += 300; ganharExp(500); },
+  },
+  {
+    objetivo: 'Capítulo I completo — vincule todos os Guardiões e melhore seus equipamentos',
+    completa: () => false,
+    progresso: () => `${equipe.length}/4 espécies na equipe`,
+    dialogo: ['Descanse, herói. Valdria está em paz.\n\nOs Guardiões selvagens sempre renascem em seus biomas, se quiser completar sua equipe.'],
+  },
+];
+let missaoAtual = 0;
+
+// ---------- CONTRATOS DE CAÇA v4.10 ----------
+// Contratos são objetivos curtos e automáticos.
+// Eles criam mais um motivo para caçar, explorar biomas e voltar ao jogo,
+// sem criar inventário complexo nem menus extras.
+const CONTRATOS_CACA = [
+  {
+    nome: 'Campos Inquietos',
+    alvo: 'Ratino',
+    meta: 5,
+    recompensa: { gold: 35, fragmentos: 1, exp: 20 },
+    dica: 'controle a praga nos campos',
+  },
+  {
+    nome: 'Pedra para a Forja',
+    alvo: 'Trolk',
+    meta: 3,
+    recompensa: { gold: 55, materiais: { pedraSombria: 1, couroRatino: 1 }, exp: 35 },
+    dica: 'recupere materiais na caverna',
+  },
+  {
+    nome: 'Maré da Praia Solar',
+    alvo: 'Caranguejo',
+    meta: 4,
+    recompensa: { gold: 70, materiais: { conchaSolar: 2, escamaAzul: 1 }, exp: 45 },
+    dica: 'limpe a nova praia ao sudeste',
+  },
+  {
+    nome: 'Ossos do Trono',
+    alvo: 'Esquelo',
+    meta: 3,
+    recompensa: { gold: 85, fragmentos: 2, materiais: { ossoAntigo: 2 }, exp: 55 },
+    dica: 'enfraqueça a guarda do Rei',
+  },
+];
+
+let contratoAtual = 0;
+let progressoContrato = 0;
+
+function contratoAtivo() {
+  if (!CONTRATOS_CACA.length) return null;
+  return CONTRATOS_CACA[contratoAtual % CONTRATOS_CACA.length];
+}
+
+function textoRecompensaContrato(recompensa) {
+  if (!recompensa) return '';
+  const partes = [];
+  if (recompensa.gold) partes.push(`${recompensa.gold} ouro`);
+  if (recompensa.fragmentos) partes.push(`⬡${recompensa.fragmentos}`);
+  if (recompensa.exp) partes.push(`${recompensa.exp} XP`);
+  if (recompensa.materiais) {
+    for (const [id, qtd] of Object.entries(recompensa.materiais)) {
+      const mat = MATERIAIS[id];
+      partes.push(`${mat ? mat.icone + mat.curto : id} ${qtd}`);
+    }
+  }
+  return partes.join(' · ');
+}
+
+function textoContratoAtual() {
+  const c = contratoAtivo();
+  if (!c) return 'sem contrato ativo';
+  return `${c.nome}: ${Math.min(progressoContrato, c.meta)}/${c.meta} ${nomeDe(c.alvo)} — ${c.dica}<br><span>Recompensa: ${textoRecompensaContrato(c.recompensa)}</span>`;
+}
+
+function aplicarRecompensaContrato(recompensa) {
+  const partes = [];
+  if (!recompensa) return partes;
+  if (recompensa.gold) {
+    jogador.gold += recompensa.gold;
+    partes.push(`${recompensa.gold} ouro`);
+  }
+  if (recompensa.fragmentos) {
+    jogador.fragmentos += recompensa.fragmentos;
+    partes.push(`⬡${recompensa.fragmentos} fragmento(s)`);
+  }
+  if (recompensa.materiais) {
+    const txt = receberMateriais(recompensa.materiais);
+    if (txt) partes.push(txt);
+  }
+  if (recompensa.exp) {
+    ganharExp(recompensa.exp);
+    partes.push(`${recompensa.exp} XP`);
+  }
+  return partes;
+}
+
+function concluirContrato(c) {
+  contratoAtual = (contratoAtual + 1) % CONTRATOS_CACA.length;
+  progressoContrato = 0;
+
+  const partes = aplicarRecompensaContrato(c.recompensa);
+  som('levelup');
+  flutuar(jogador, 'CONTRATO!', '#6ad0c0');
+  log(`✦ Contrato concluído: ${c.nome}! Recompensa: ${partes.join(', ')}.`, 'xp');
+  atualizarMissaoUI();
+  salvarJogo();
+}
+
+function registrarContrato(tipoMonstro) {
+  const c = contratoAtivo();
+  if (!c || c.alvo !== tipoMonstro) return;
+  progressoContrato++;
+  if (progressoContrato >= c.meta) {
+    concluirContrato(c);
+  } else {
+    atualizarMissaoUI();
+  }
+}
+
+// ---------- 5. LÓGICA ----------
+const ocupado = (x, y) =>
+  (jogador.x === x && jogador.y === y) ||
+  (NPC.x === x && NPC.y === y) ||
+  monstros.some(m => m.x === x && m.y === y) ||
+  selvagens.some(s => s.x === x && s.y === y) ||
+  baus.some(b => !b.aberto && b.x === x && b.y === y) ||
+  santuarios.some(s => s.x === x && s.y === y) ||
+  (companheiro() && companheiro().x === x && companheiro().y === y);
+
+const teclas = {};
+function tickJogador(dt) {
+  jogador.regen = (jogador.regen || 0) + dt;
+  if (jogador.regen > 2000) {
+    jogador.regen = 0;
+    jogador.hp = Math.min(maxHpAtual(), jogador.hp + 2);
+    jogador.mp = Math.min(maxMpAtual(), jogador.mp + 4);
+  }
+
+  jogador.cdMover -= dt;
+  if (jogador.cdMover <= 0) {
+    const entrada = direcaoEntradaAtual();
+    let passoReal = null;
+
+    if (entrada.dx || entrada.dy) {
+      jogador.caminho = null;
+      cancelarAutomacoesDeCombate();
+      passoReal = tentarPassoJogador(entrada.dx, entrada.dy, true);
+    } else if (jogador.caminho && jogador.caminho.length) {
+      const passo = jogador.caminho[0];
+      const dx = passo.x - jogador.x;
+      const dy = passo.y - jogador.y;
+
+      passoReal = tentarPassoJogador(dx, dy, false);
+      if (passoReal) {
+        jogador.caminho.shift();
+      } else {
+        const fim = jogador.caminho[jogador.caminho.length - 1];
+        jogador.caminho = acharCaminho(jogador, fim);
+        if (!jogador.caminho) log('Caminho bloqueado.', 'info');
+      }
+    }
+
+    if (passoReal) {
+      jogador.cdMover = tempoMovimentoJogador(passoReal.dx, passoReal.dy);
+    }
+  }
+
+  tickAcoesPendentes();
+
+  jogador.cdAtaque -= dt;
+  if (jogador.alvo && jogador.alvo.hp > 0 && jogador.cdAtaque <= 0
+      && distCheb(jogador, jogador.alvo) <= (jogador.alcanceAtaque || 1)) {
+    const base = jogador.danoBase || [2, 8];
+    const bonus = bonusEquip();
+    let dano = rolarDano([
+      base[0] + jogador.nivel + bonus.dano,
+      base[1] + jogador.nivel * 2 + bonus.dano
+    ]);
+    dano = aplicarCriticoSeRolou(dano, jogador.alvo);
+    som('golpe');
+    ferirAlvo(jogador.alvo, dano);
+    jogador.cdAtaque = tempoAtaqueJogador();
+  }
+}
+
+function ferirAlvo(a, dano) { a.selvagem ? ferirSelvagem(a, dano) : ferirMonstro(a, dano); }
+
+function ferirMonstro(m, dano) {
+  marcarImpacto(m);
+  if (m.marcadoSombrio > 0) {
+    dano = Math.ceil(dano * 1.25);
+  }
+  m.hp -= dano;
+  flutuar(m, '-' + dano, m.marcadoSombrio > 0 ? '#d090ff' : '#ffdf60');
+  if (m.hp <= 0) morrerMonstro(m);
+}
+
+function ferirSelvagem(g, dano) {
+  marcarImpacto(g);
+  g.hp -= dano;
+  flutuar(g, '-' + dano, '#6ad0c0');
+  if (g.hp <= 0) {
+    log(`${g.especie} se dissipou em essência...`, 'info');
+    corpos.push({
+      x: g.x,
+      y: g.y,
+      rx: g.x * TILE,
+      ry: g.y * TILE,
+      tipo: g.especie,
+      loot: {
+        fragmentos: 1,
+        materiais: materialDoGuardiao(g.especie),
+      },
+      tempo: 60000,
+    });
+    selvagens = selvagens.filter(s => s !== g);
+    if (jogador.alvo === g) jogador.alvo = null;
+    setTimeout(() => nascerGuardiao(g.spawn), 30000);
+  }
+}
+
+const nomeDe = t => t === 'ReiEsquelo' ? 'Rei Esquelo' : t;
+
+function morrerMonstro(m) {
+  const base = BESTIARIO[m.tipo];
+  mortes[m.tipo]++;
+  registrarContrato(m.tipo);
+  som(base.boss ? 'levelup' : 'morte');
+  if (base.boss) log('⚔ O REI ESQUELO CAIU! Saqueie o trono!', 'xp');
+  ganharExp(base.exp);
+  const c = companheiro();
+  if (c) expGuardiao(c, Math.floor(base.exp / 2));
+
+  const loot = base.loot();
+  const equipamento = criarEquipamento(m.tipo);
+  if (equipamento) loot.equipamento = equipamento;
+
+  corpos.push({
+    x: m.x,
+    y: m.y,
+    rx: m.x * TILE,
+    ry: m.y * TILE,
+    tipo: m.tipo,
+    loot,
+    tempo: 120000,
+  });
+
+  monstros = monstros.filter(o => o !== m);
+  if (jogador.alvo === m) jogador.alvo = null;
+  if (!base.boss) setTimeout(() => nascerMonstro(m.spawn), 15000);
+  checarMissao();
+  salvarJogo();
+}
+
+function ganhosDoNivel() {
+  const classe = jogador.classe || 'cavaleiro';
+  return GANHO_NIVEL_CLASSE[classe] || GANHO_NIVEL_CLASSE.cavaleiro;
+}
+
+// ---------- FEEL DE CONTROLE v4.11 ----------
+// Pequenas melhorias que deixam o jogo menos "duro":
+// 1) diagonal real com deslize nas paredes;
+// 2) perseguição automática do alvo tocado;
+// 3) habilidade em buffer: se estiver longe, o herói anda e solta ao chegar;
+// 4) tempos de ataque/movimento levemente diferentes por classe.
+function classeAtual() {
+  return CLASSES[jogador.classe || 'cavaleiro'] || CLASSES.cavaleiro;
+}
+
+function tempoMovimentoJogador(dx, dy) {
+  const base = classeAtual().tempoMovimento || 185;
+  // diagonal continua um pouco mais lenta, mas menos "pesada" que antes.
+  return (dx && dy) ? Math.round(base * 1.32) : base;
+}
+
+function tempoAtaqueJogador() {
+  const c = classeAtual();
+  const bonus = bonusEquip ? bonusEquip() : { dano: 0 };
+  // Equipamento melhor dá uma sensação levemente mais ágil, sem quebrar balanceamento.
+  return Math.max(560, (c.velAtaque || 930) - Math.min(180, (bonus.dano || 0) * 12));
+}
+
+function tentarPassoJogador(dx, dy, permitirDeslize = true) {
+  if (!dx && !dy) return null;
+
+  const tentativas = [];
+  if (dx && dy && permitirDeslize) {
+    tentativas.push([dx, dy]);
+
+    // No joystick, o eixo mais inclinado vira a primeira tentativa de deslize.
+    const priorizaX = Math.abs(joystick.dx || 0) >= Math.abs(joystick.dy || 0);
+    if (priorizaX) tentativas.push([dx, 0], [0, dy]);
+    else tentativas.push([0, dy], [dx, 0]);
+  } else {
+    tentativas.push([dx, dy]);
+  }
+
+  for (const [mx, my] of tentativas) {
+    if (!mx && !my) continue;
+    const nx = jogador.x + mx;
+    const ny = jogador.y + my;
+    if (podeMoverComColisao(jogador, nx, ny)) {
+      jogador.x = nx;
+      jogador.y = ny;
+      jogador.dirX = mx;
+      jogador.dirY = my;
+      return { dx: mx, dy: my };
+    }
+  }
+  return null;
+}
+
+function aproximarParaAlvo(alvo, alcance, manterPerseguindo = true) {
+  if (!alvo || alvo.hp <= 0) return false;
+  if (distCheb(jogador, alvo) <= alcance) return true;
+
+  const destino = tileParaAtacar(alvo, alcance);
+  if (!destino) return false;
+
+  const caminho = acharCaminho(jogador, destino);
+  if (!caminho) return false;
+
+  jogador.caminho = caminho;
+  if (manterPerseguindo) jogador.persegueAlvo = true;
+  return true;
+}
+
+function cancelarAutomacoesDeCombate() {
+  jogador.persegueAlvo = false;
+  jogador.acaoPendente = null;
+}
+
+function mirarAlvo(alvo, mensagem, tipo = 'info') {
+  const mesmo = jogador.alvo === alvo;
+  jogador.alvo = mesmo ? null : alvo;
+  jogador.acaoPendente = null;
+
+  if (!jogador.alvo) {
+    jogador.persegueAlvo = false;
+    log('Alvo cancelado.', 'info');
+    return;
+  }
+
+  jogador.persegueAlvo = true;
+  log(mensagem, tipo);
+  aproximarParaAlvo(jogador.alvo, jogador.alcanceAtaque || 1, true);
+}
+
+function tickAcoesPendentes() {
+  const alvo = jogador.alvo;
+  if (!alvo || alvo.hp <= 0) {
+    jogador.persegueAlvo = false;
+    jogador.acaoPendente = null;
+    return;
+  }
+
+  const entrada = direcaoEntradaAtual();
+  if (entrada.dx || entrada.dy) return;
+
+  if (jogador.acaoPendente && jogador.acaoPendente.tipo === 'habilidade') {
+    const classe = classeAtual();
+    if (distCheb(jogador, alvo) <= classe.alcanceHabilidade) {
+      if (jogador.cdMagia <= 0 && jogador.mp >= classe.custo) {
+        jogador.acaoPendente = null;
+        lancarMagia();
+      }
+      return;
+    }
+    if (!jogador.caminho || !jogador.caminho.length) {
+      aproximarParaAlvo(alvo, classe.alcanceHabilidade, true);
+    }
+    return;
+  }
+
+  if (jogador.persegueAlvo && distCheb(jogador, alvo) > (jogador.alcanceAtaque || 1)
+      && (!jogador.caminho || !jogador.caminho.length)) {
+    aproximarParaAlvo(alvo, jogador.alcanceAtaque || 1, true);
+  }
+}
+
+function chanceCriticoJogador() {
+  // Pequena chance de pico de dano. Arqueiro ganha um pouco mais de identidade.
+  return jogador.classe === 'arqueiro' ? 0.12 : 0.08;
+}
+
+function aplicarCriticoSeRolou(dano, alvo) {
+  if (Math.random() >= chanceCriticoJogador()) return dano;
+  const crit = Math.ceil(dano * 1.65);
+  som('critico');
+  flutuar(alvo, 'CRÍTICO!', '#ffd87a');
+  tremor = Math.max(tremor, 3);
+  return crit;
+}
+
+function marcarImpacto(e, tempo = 140) {
+  if (!e) return;
+  e.hitFlash = Math.max(e.hitFlash || 0, tempo);
+}
+
+function tickFeedbackImpacto(dt) {
+  jogador.hitFlash = Math.max(0, (jogador.hitFlash || 0) - dt);
+  monstros.forEach(m => { m.hitFlash = Math.max(0, (m.hitFlash || 0) - dt); });
+  selvagens.forEach(g => { g.hitFlash = Math.max(0, (g.hitFlash || 0) - dt); });
+  equipe.forEach(g => { g.hitFlash = Math.max(0, (g.hitFlash || 0) - dt); });
+}
+
+
+function direcaoEntradaAtual() {
+  let dx = 0, dy = 0;
+  if (teclas.esq) dx -= 1;
+  if (teclas.dir) dx += 1;
+  if (teclas.cima) dy -= 1;
+  if (teclas.baixo) dy += 1;
+  return { dx, dy };
+}
+function tentarDashJogador(distancia = 2) {
+  const { dx, dy } = direcaoEntradaAtual();
+  if (!dx && !dy) return 0;
+  let passos = 0;
+  for (let i = 0; i < distancia; i++) {
+    const nx = jogador.x + dx;
+    const ny = jogador.y + dy;
+    if (!podeMoverComColisao(jogador, nx, ny)) break;
+    efeitos.push({ x: jogador.x, y: jogador.y, tipo: 'ritual', tempo: 240 });
+    jogador.x = nx;
+    jogador.y = ny;
+    passos++;
+  }
+  if (passos > 0) {
+    jogador.caminho = null;
+    jogador.cdMover = 120;
+    tremor = Math.max(tremor, 2.5);
+  }
+  return passos;
+}
+function tileParaAtacar(alvo, alcance) {
+  const candidatos = [];
+  for (let dy = -alcance; dy <= alcance; dy++) {
+    for (let dx = -alcance; dx <= alcance; dx++) {
+      if (dx === 0 && dy === 0) continue;
+      const x = alvo.x + dx;
+      const y = alvo.y + dy;
+      const distAlvo = Math.max(Math.abs(dx), Math.abs(dy));
+      if (distAlvo > alcance) continue;
+      if (!podeAndar(x, y)) continue;
+      if (ocupado(x, y)) continue;
+      candidatos.push({
+        x,
+        y,
+        distJogador: distCheb(jogador, { x, y }),
+      });
+    }
+  }
+  candidatos.sort((a, b) => a.distJogador - b.distJogador);
+  return candidatos[0] || null;
+}
+
+function ganharExp(qtd) {
+  const bonus = bonusEquip();
+  qtd = Math.ceil(qtd * (1 + bonus.xpBonus));
+
+  jogador.exp += qtd;
+  flutuar(jogador, '+' + qtd + ' exp', '#d0a0ff');
+
+  while (jogador.exp >= expParaNivel(jogador.nivel + 1)) {
+    jogador.nivel++;
+
+    const ganho = ganhosDoNivel();
+    jogador.maxHp += ganho.hp;
+    jogador.maxMp += ganho.mp;
+
+    jogador.hp = maxHpAtual();
+    jogador.mp = maxMpAtual();
+
+    som('levelup');
+    log(`✦ Nível ${jogador.nivel}! +${ganho.hp} HP, +${ganho.mp} MP`, 'xp');
+  }
+
+  salvarJogo();
+}
+
+function danoNoJogador(dano, origem) {
+  if (jogador.esquivaAtiva > 0) {
+    jogador.esquivaAtiva = 0;
+    flutuar(jogador, 'ESQUIVA!', '#d8b25a');
+    log('Você rolou e esquivou do golpe!', 'info');
+    return;
+  }
+  if (jogador.barreira > 0) {
+    const absorvido = Math.min(jogador.barreira, dano);
+    jogador.barreira -= absorvido;
+    dano -= absorvido;
+    flutuar(jogador, '-' + absorvido + ' barreira', '#b07aff');
+    if (jogador.barreira <= 0) log('A Barreira Arcana se desfez.', 'info');
+    if (dano <= 0) return;
+  }
+  if (jogador.escudoAtivo > 0) {
+    dano = Math.ceil(dano / 2);
+  }
+
+  const bonus = bonusEquip();
+  if (bonus.defesa > 0) {
+    dano = Math.max(1, dano - bonus.defesa);
+  }
+
+  jogador.hp -= dano;
+  marcarImpacto(jogador, 170);
+  flutuar(jogador, '-' + dano, '#ff6060');
+  som('dor');
+  tremor = Math.min(10, 4 + dano / 4);
+  if (jogador.hp <= 0) morrerJogador();
+}
+
+function tickMonstros(dt) {
+  const comp = companheiro();
+  for (const m of monstros) {
+    const base = BESTIARIO[m.tipo];
+    if (m.lento > 0) m.lento = Math.max(0, m.lento - dt);
+    if (m.marcadoSombrio > 0) m.marcadoSombrio = Math.max(0, m.marcadoSombrio - dt);
+
+    const longeDeCasa = distCheb(m, m.spawn) > 10;
+    let presa = jogador;
+    if (comp && distCheb(m, comp) < distCheb(m, jogador)) presa = comp;
+    const dist = distCheb(m, presa);
+
+    m.cdAtaque -= dt;
+    if (m.tipo === 'ReiEsquelo') {
+      m.cdEspecial = Math.max(0, (m.cdEspecial || 0) - dt);
+      if (!longeDeCasa && m.cdEspecial <= 0 && distCheb(m, jogador) <= base.visao) {
+        chuvaOssea(m);
+        m.cdEspecial = 6500;
+      }
+    }
+    if (!longeDeCasa) {
+      if (dist <= 1 && m.cdAtaque <= 0) {
+        const dano = rolarDano(base.dano);
+        m.cdAtaque = 1200;
+        if (presa === jogador) { danoNoJogador(dano, m.tipo); if (jogador.hp <= 0) return; }
+        else {
+          presa.hp -= dano;
+          marcarImpacto(presa, 160);
+          flutuar(presa, '-' + dano, '#ff9060');
+          if (presa.hp <= 0) desmaiarCompanheiro(presa);
+        }
+        continue;
+      }
+      if (base.alcance && dist > 1 && dist <= base.alcance && m.cdAtaque <= 0) {
+        m.cdAtaque = base.cdTiro;
+        prepararTiro(m, presa, rolarDano(base.danoTiro), base.projetil);
+        continue;
+      }
+    }
+
+    m.cdMover -= dt;
+    if (m.cdMover <= 0) {
+      m.cdMover = m.lento > 0 ? base.vel * 1.8 : base.vel;
+      const meta = longeDeCasa ? m.spawn
+                 : (dist > 1 && dist <= base.visao) ? presa : null;
+      if (meta) {
+        const dx = Math.sign(meta.x - m.x), dy = Math.sign(meta.y - m.y);
+        for (const [ox, oy] of [[dx, dy], [dx, 0], [0, dy]]) {
+          const nx = m.x + ox, ny = m.y + oy;
+          if ((ox || oy) && podeMoverComColisao(m, nx, ny)) {
+            m.x = nx;
+            m.y = ny;
+            break;
+          }
+        }
+      } else if (!meta && dist > base.visao && Math.random() < 0.4 && !base.boss) {
+        const [ox, oy] = [[0,1],[0,-1],[1,0],[-1,0]][irand(4)];
+        if (podeMoverComColisao(m, m.x + ox, m.y + oy)) {
+          m.x += ox;
+          m.y += oy;
+        }
+      }
+    }
+  }
+  corpos.forEach(c => c.tempo -= dt);
+  corpos = corpos.filter(c => c.tempo > 0);
+}
+
+function tickSelvagens(dt) {
+  for (const g of selvagens) {
+    g.cdMover -= dt;
+    if (g.cdMover <= 0) {
+      g.cdMover = 700;
+      if (Math.random() < 0.3) {
+        const [ox, oy] = [[0,1],[0,-1],[1,0],[-1,0]][irand(4)];
+        const nx = g.x + ox, ny = g.y + oy;
+        if (
+          podeMoverComColisao(g, nx, ny) &&
+          Math.abs(nx - g.spawn.x) <= 3 &&
+          Math.abs(ny - g.spawn.y) <= 3
+        ) {
+          g.x = nx;
+          g.y = ny;
+        }
+      }
+    }
+  }
+}
+
+function tickCompanheiro(dt) {
+  for (const g of equipe) {
+    if (g.desmaiado) {
+      g.tRevive -= dt;
+      if (g.tRevive <= 0) {
+        g.desmaiado = false;
+        g.hp = Math.floor(g.maxHp / 2);
+        g.x = jogador.x;
+        g.y = jogador.y;
+        g.rx = jogador.rx;
+        g.ry = jogador.ry;
+        log(`${g.especie} despertou e voltou à luta!`, 'vinculo');
+      }
+    }
+  }
+  const c = companheiro();
+  if (!c) return;
+  c.cdMover -= dt;
+  if (c.cdMover <= 0) {
+    const alvoAtual =
+      jogador.alvo && jogador.alvo.hp > 0
+        ? jogador.alvo
+        : null;
+    const meta =
+      alvoAtual && distCheb(c, alvoAtual) > 1
+        ? alvoAtual
+        : distCheb(c, jogador) > 1
+          ? jogador
+          : null;
+    if (meta) {
+      const dx = Math.sign(meta.x - c.x);
+      const dy = Math.sign(meta.y - c.y);
+      for (const [ox, oy] of [[dx, dy], [dx, 0], [0, dy]]) {
+        const nx = c.x + ox;
+        const ny = c.y + oy;
+        if ((ox || oy) && podeMoverComColisao(c, nx, ny)) {
+          c.x = nx;
+          c.y = ny;
+          break;
+        }
+      }
+    }
+    c.cdMover = 210;
+  }
+  c.cdAtaque -= dt;
+  const alvo =
+    jogador.alvo && jogador.alvo.hp > 0
+      ? jogador.alvo
+      : null;
+  if (!alvo || c.cdAtaque > 0 || distCheb(c, alvo) > 1) return;
+  const alvoEhSelvagem = !!alvo.selvagem;
+  const limiteSeguranca = alvoEhSelvagem
+    ? Math.ceil(alvo.maxHp * 0.20)
+    : 0;
+  if (alvoEhSelvagem && alvo.hp <= limiteSeguranca) {
+    c.cdAtaque = 500;
+    return;
+  }
+  let dano = danoGuardiao(c);
+  if (alvoEhSelvagem) {
+    dano = Math.max(1, Math.floor(dano * 0.5));
+    dano = Math.min(dano, Math.max(0, alvo.hp - limiteSeguranca));
+  }
+  if (dano <= 0) {
+    c.cdAtaque = 500;
+    return;
+  }
+  som('golpe');
+  flutuar(alvo, '-' + dano, '#40c0a0');
+  alvo.hp -= dano;
+  if (alvo.hp <= 0) {
+    if (alvoEhSelvagem) {
+      ferirSelvagem(alvo, 0);
+    } else {
+      morrerMonstro(alvo);
+    }
+  } else if (alvoEhSelvagem && alvo.hp <= limiteSeguranca) {
+    log(`${c.especie} parou o ataque. ${alvo.especie} está pronto para o Ritual de Vínculo!`, 'vinculo');
+  }
+  c.cdAtaque = alvoEhSelvagem ? 1200 : 900;
+}
+
+function tickHabilidadesGuardiao(dt) {
+  const c = companheiro();
+  if (!c) return;
+  c.cdHabilidade = Math.max(0, (c.cdHabilidade || 0) - dt);
+  if (c.cdHabilidade > 0) return;
+  const alvo = jogador.alvo && jogador.alvo.hp > 0 ? jogador.alvo : null;
+  const dados = GUARDIOES[c.especie];
+  if (!dados) return;
+  if (c.especie === 'Folium') {
+    const jogadorMaxHp = maxHpAtual();
+    const jogadorFerido = jogador.hp < jogadorMaxHp * 0.75;
+    const guardiaoFerido = c.hp < c.maxHp * 0.75;
+    const emergencia = jogador.hp < jogadorMaxHp * 0.45 || c.hp < c.maxHp * 0.45;
+    const emCombate = alvo && alvo.hp > 0;
+    if (!emCombate && !emergencia) return;
+    if (!jogadorFerido && !guardiaoFerido) return;
+    const curaJogador = 10 + c.nivel * 3;
+    const curaGuardiao = 8 + c.nivel * 3;
+    const antesJogador = jogador.hp;
+    const antesGuardiao = c.hp;
+    jogador.hp = Math.min(jogadorMaxHp, jogador.hp + curaJogador);
+    c.hp = Math.min(c.maxHp, c.hp + curaGuardiao);
+    const curadoJ = jogador.hp - antesJogador;
+    const curadoG = c.hp - antesGuardiao;
+    if (curadoJ > 0) flutuar(jogador, '+' + curadoJ, '#60e060');
+    if (curadoG > 0) flutuar(c, '+' + curadoG, '#40c0a0');
+    efeitos.push({ x: jogador.x, y: jogador.y, tipo: 'ritual', tempo: 700 });
+    som('pocao');
+    log(`✦ ${c.especie} usou ${dados.habilidade}.`, 'vinculo');
+    c.cdHabilidade = dados.cdHabilidade;
+    return;
+  }
+  if (!alvo) return;
+  if (c.especie === 'Aquari') {
+    if (alvo.selvagem) return;
+    alvo.lento = 5000;
+    efeitos.push({ x: alvo.x, y: alvo.y, tipo: 'ritual', tempo: 700 });
+    flutuar(alvo, 'LENTO!', '#70c8ff');
+    som('ritual');
+    log(`✦ ${c.especie} usou ${dados.habilidade}.`, 'vinculo');
+    c.cdHabilidade = dados.cdHabilidade;
+    return;
+  }
+  if (c.especie === 'Ignix') {
+    if (alvo.selvagem) return;
+    const dano = 8 + c.nivel * 4;
+    const atingidos = monstros
+      .filter(m => m.hp > 0 && distCheb(m, alvo) <= 1)
+      .slice(0, 5);
+    if (!atingidos.length) return;
+    for (const m of atingidos) {
+      if (!monstros.includes(m) || m.hp <= 0) continue;
+      efeitos.push({ x: m.x, y: m.y, tipo: 'fogo', tempo: 450 });
+      ferirMonstro(m, dano);
+    }
+    som('magia');
+    log(`✦ ${c.especie} usou ${dados.habilidade}.`, 'vinculo');
+    c.cdHabilidade = dados.cdHabilidade;
+    return;
+  }
+  if (c.especie === 'Umbrix') {
+    if (alvo.selvagem) return;
+    alvo.marcadoSombrio = 6000;
+    efeitos.push({ x: alvo.x, y: alvo.y, tipo: 'ritual', tempo: 700 });
+    flutuar(alvo, 'MARCADO!', '#d090ff');
+    som('ritual');
+    log(`✦ ${c.especie} usou ${dados.habilidade}.`, 'vinculo');
+    c.cdHabilidade = dados.cdHabilidade;
+  }
+}
+
+function desmaiarCompanheiro(c) {
+  c.desmaiado = true;
+  c.tRevive = 20000;
+  som('falha');
+  log(`${c.especie} desmaiou! Ele despertará em 20 segundos.`, 'morte');
+}
+
+function morrerJogador() {
+  som('gameover');
+  log('☠ Você morreu! Renascendo no templo... (−10% de exp)', 'morte');
+  jogador.exp = Math.floor(jogador.exp * 0.9);
+  while (jogador.nivel > 1 && jogador.exp < expParaNivel(jogador.nivel)) jogador.nivel--;
+  jogador.hp = maxHpAtual();
+  jogador.mp = maxMpAtual();
+  curarEquipeCompleta();
+  jogador.x = SPAWN.x; jogador.y = SPAWN.y;
+  jogador.rx = SPAWN.x * TILE; jogador.ry = SPAWN.y * TILE;
+  jogador.alvo = null; jogador.caminho = null;
+  const c = companheiro();
+  if (c) { c.x = jogador.x; c.y = jogador.y; c.rx = jogador.rx; c.ry = jogador.ry; }
+  santuarios.forEach(s => { s.usado = false; s.tRecarga = 0; });
+  salvarJogo();
+}
+
+// ---------- LOJA DO ANCIÃO ----------
+function abrirLoja() {
+  atualizarLojaOuro();
+  document.getElementById('loja').classList.add('aberta');
+}
+function atualizarLojaOuro() {
+  document.getElementById('lojaOuro').textContent = `Ouro: ${jogador.gold}`;
+}
+function fecharLoja() {
+  document.getElementById('loja').classList.remove('aberta');
+}
+function comprarPocao() {
+  if (jogador.gold < 15) return log('Ouro insuficiente para comprar poção.', 'info');
+  jogador.gold -= 15;
+  jogador.pocoes++;
+  atualizarLojaOuro();
+  som('moeda');
+  log('Você comprou 1 poção.', 'loot');
+  salvarJogo();
+}
+function comprarFragmento() {
+  if (jogador.gold < 25) return log('Ouro insuficiente para comprar fragmento.', 'info');
+  jogador.gold -= 25;
+  jogador.fragmentos++;
+  atualizarLojaOuro();
+  som('moeda');
+  log('Você comprou 1 fragmento de essência.', 'loot');
+  salvarJogo();
+}
+function comprarCura() {
+  if (jogador.gold < 40) return log('Ouro insuficiente para receber cura completa.', 'info');
+  jogador.gold -= 40;
+  jogador.hp = maxHpAtual();
+  jogador.mp = maxMpAtual();
+  curarEquipeCompleta();
+  atualizarLojaOuro();
+  som('pocao');
+  log('O Ancião restaurou você e seus Guardiões.', 'xp');
+  salvarJogo();
+}
+
+function interagir() {
+  if (distCheb(jogador, NPC) <= 1) {
+    falarComNPC();
+    return;
+  }
+  const corpo = corpos.find(c => distCheb(jogador, c) <= 1);
+  if (corpo) {
+    saquear(corpo);
+    return;
+  }
+  const bau = baus.find(b => !b.aberto && distCheb(jogador, b) <= 1);
+  if (bau) {
+    abrirBau(bau);
+    return;
+  }
+  const santuario = santuarios.find(s => distCheb(jogador, s) <= 1);
+  if (santuario) {
+    usarSantuario(santuario);
+    return;
+  }
+  const selvagem = selvagens.find(s => distCheb(jogador, s) <= 1);
+  if (selvagem) {
+    if (jogador.nucleos > 0) {
+      ritualDeVinculo(selvagem);
+    } else {
+      mirarAlvo(selvagem, 'Guardião próximo. Você precisa de um Núcleo de Essência (◉).', 'info');
+    }
+    return;
+  }
+  const monstro = monstros.find(m => distCheb(jogador, m) <= 1);
+  if (monstro) {
+    mirarAlvo(monstro, `${nomeDe(monstro.tipo)} na mira.`, 'info');
+    return;
+  }
+  log('Nada para interagir por perto.', 'info');
+}
+
+function usarEspecial() {
+  if (jogador.cdEspecial > 0) return;
+  if (!jogador.classe) return;
+  if (jogador.classe === 'cavaleiro') {
+    if (jogador.mp < 10) return log('Sem mana suficiente.', 'info');
+    jogador.mp -= 10;
+    jogador.cdEspecial = 8000;
+    jogador.escudoAtivo = 5000;
+    flutuar(jogador, 'ESCUDO!', '#d8b25a');
+    som('ritual');
+    log('Escudo erguido: metade do dano por 5 segundos.', 'xp');
+  } else if (jogador.classe === 'arqueiro') {
+    if (jogador.mp < 8) return log('Sem mana suficiente.', 'info');
+    jogador.mp -= 8;
+    jogador.cdEspecial = 7000;
+    jogador.esquivaAtiva = 3000;
+    const passos = tentarDashJogador(2);
+    flutuar(jogador, passos ? 'ROLAGEM!' : 'ESQUIVA!', '#d8b25a');
+    som('tiro');
+    log(
+      passos
+        ? `Rolagem: você avançou ${passos} casa(s) e anulará o próximo golpe.`
+        : 'Você ficou evasivo: o próximo golpe será anulado.',
+      'xp'
+    );
+  } else {
+    if (jogador.mp < 25) return log('Sem mana suficiente.', 'info');
+    jogador.mp -= 25;
+    jogador.cdEspecial = 9000;
+    jogador.barreira = 30 + jogador.nivel * 8;
+    flutuar(jogador, 'BARREIRA!', '#b07aff');
+    som('magia');
+    log(`Barreira Arcana absorve ${jogador.barreira} de dano.`, 'xp');
+  }
+}
+
+function lancarMagia() {
+  if (jogador.cdMagia > 0) return;
+  const classe = classeAtual();
+  const alvo = jogador.alvo;
+  if (!alvo || alvo.hp <= 0) {
+    return log('Toque num alvo primeiro.', 'info');
+  }
+  if (distCheb(jogador, alvo) > classe.alcanceHabilidade) {
+    const aproximou = aproximarParaAlvo(alvo, classe.alcanceHabilidade, true);
+    if (aproximou) {
+      jogador.acaoPendente = { tipo: 'habilidade' };
+      log(`Aproximando para usar ${classe.habilidade}.`, 'info');
+    } else {
+      log(`Alvo longe demais para ${classe.habilidade}.`, 'info');
+    }
+    return;
+  }
+  if (jogador.mp < classe.custo) {
+    return log('Sem mana suficiente.', 'info');
+  }
+  jogador.acaoPendente = null;
+  jogador.mp -= classe.custo;
+  jogador.cdMagia = classe.cooldown;
+  let dano = 0;
+  const bonus = bonusEquip();
+  if (jogador.classe === 'cavaleiro') {
+    dano = rolarDano([
+      16 + jogador.nivel * 2 + bonus.dano,
+      28 + jogador.nivel * 3 + bonus.dano,
+    ]);
+    dano = aplicarCriticoSeRolou(dano, alvo);
+    efeitos.push({ x: alvo.x, y: alvo.y, tipo: 'ritual', tempo: 300 });
+    som('golpe');
+  }
+  else if (jogador.classe === 'arqueiro') {
+    dano = rolarDano([
+      12 + jogador.nivel * 2 + bonus.dano,
+      24 + jogador.nivel * 3 + bonus.dano,
+    ]);
+    dano = aplicarCriticoSeRolou(dano, alvo);
+    atirar(jogador, alvo, dano, '#d8b25a');
+    som('tiro');
+    salvarJogo();
+    return;
+  }
+  else {
+    dano = rolarDano([
+      14 + jogador.nivel * 3 + bonus.dano,
+      30 + jogador.nivel * 4 + bonus.dano,
+    ]);
+    dano = aplicarCriticoSeRolou(dano, alvo);
+    efeitos.push({ x: alvo.x, y: alvo.y, tipo: 'fogo', tempo: 400 });
+    som('magia');
+  }
+  ferirAlvo(alvo, dano);
+  salvarJogo();
+}
+
+function usarPocao() {
+  if (jogador.pocoes <= 0) return log('Você não tem poções.', 'info');
+  jogador.pocoes--;
+  const bonus = bonusEquip();
+  const curaJogador = Math.ceil((40 + irand(21)) * (1 + bonus.curaBonus));
+  jogador.hp = Math.min(maxHpAtual(), jogador.hp + curaJogador);
+  const curaGuardiao = Math.floor(curaJogador * 0.65);
+  const curadoGuardiao = curarGuardiaoAtivo(curaGuardiao);
+  som('pocao');
+  flutuar(jogador, '+' + curaJogador, '#60e060');
+  const c = companheiro();
+  if (c && curadoGuardiao > 0) {
+    flutuar(c, '+' + curadoGuardiao, '#40c0a0');
+  }
+  salvarJogo();
+}
+
+function saquear(corpo) {
+  if (distCheb(jogador, corpo) > 1) return log('Aproxime-se do corpo para saquear.', 'info');
+  const partes = [];
+  if (corpo.loot.gold)       { jogador.gold += corpo.loot.gold; partes.push(`${corpo.loot.gold} de ouro`); }
+  if (corpo.loot.pocoes)     { jogador.pocoes += corpo.loot.pocoes; partes.push(`${corpo.loot.pocoes} poção(ões)`); }
+  if (corpo.loot.fragmentos) {
+    jogador.fragmentos += corpo.loot.fragmentos;
+    partes.push(`⬡${corpo.loot.fragmentos} fragmento(s)`);
+  }
+  if (corpo.loot.materiais) {
+    const texto = receberMateriais(corpo.loot.materiais);
+    if (texto) partes.push(texto);
+  }
+  if (corpo.loot.amuleto) {
+    jogador.temAmuleto = true;
+    partes.push('☀ O AMULETO DO SOL');
+  }
+  if (corpo.loot.equipamento) {
+    const item = corpo.loot.equipamento;
+    partes.push(`⬥ ${item.nome}`);
+    tentarEquipar(item);
+  }
+  som('moeda');
+  log(partes.length ? `Saque de ${nomeDe(corpo.tipo)}: ${partes.join(', ')}.` : 'O corpo estava vazio.', 'loot');
+  corpos = corpos.filter(c => c !== corpo);
+  checarMissao();
+  salvarJogo();
+}
+
+function abrirBau(b) {
+  if (distCheb(jogador, b) > 1) return log('Aproxime-se do baú para abrir.', 'info');
+  if (b.aberto) return log('Este baú já está vazio.', 'info');
+  b.aberto = true;
+  const partes = [];
+  if (b.loot.gold)       { jogador.gold += b.loot.gold; partes.push(`${b.loot.gold} de ouro`); }
+  if (b.loot.pocoes)     { jogador.pocoes += b.loot.pocoes; partes.push(`${b.loot.pocoes} poção(ões)`); }
+  if (b.loot.fragmentos) {
+    jogador.fragmentos += b.loot.fragmentos;
+    partes.push(`⬡${b.loot.fragmentos} fragmento(s)`);
+  }
+  if (b.loot.nucleos) {
+    jogador.nucleos += b.loot.nucleos;
+    partes.push(`◉${b.loot.nucleos} Núcleo de Essência!`);
+  }
+  if (b.loot.materiais) {
+    const texto = receberMateriais(b.loot.materiais);
+    if (texto) partes.push(texto);
+  }
+  som('moeda');
+  flutuar(jogador, 'BAÚ!', '#ffd87a');
+  log(`Baú aberto: ${partes.join(', ')}.`, 'loot');
+  checarMissao();
+  salvarJogo();
+}
+
+function usarSantuario(s) {
+  if (distCheb(jogador, s) > 1) return log('Aproxime-se do santuário para orar.', 'info');
+  if (s.usado)
+    return log(`O santuário está apagado. Reacende em ${Math.ceil(s.tRecarga / 1000)}s.`, 'info');
+  s.usado = true;
+  s.tRecarga = RECARGA_SANTUARIO;
+  jogador.hp = maxHpAtual();
+  jogador.mp = maxMpAtual();
+  curarEquipeCompleta();
+  som('ritual');
+  efeitos.push({ x: s.x, y: s.y, tipo: 'ritual', tempo: 800 });
+  flutuar(jogador, 'RESTAURADO!', '#8af0d0');
+  log('A luz do santuário restaura você e seus Guardiões.', 'vinculo');
+  salvarJogo();
+}
+
+function checarMissao() {
+  const m = MISSOES[missaoAtual];
+  if (m.completa() && m.aoCompletar && !m.avisado) {
+    m.avisado = true;
+    log('✔ ' + m.aoCompletar, 'xp');
+  }
+  atualizarMissaoUI();
+}
+
+function falarComNPC() {
+  const m = MISSOES[missaoAtual];
+  const pronto = missaoAtual === 0 || m.completa();
+  if (!pronto) {
+    if (missaoAtual >= 1) {
+      abrirLoja();
+    } else {
+      abrirDialogo(NPC.nome, ['Ainda não terminou? ' + m.objetivo + '.\n\nVolte quando cumprir a tarefa, herói.'], null);
+    }
+    return;
+  }
+  abrirDialogo(NPC.nome, m.dialogo, () => {
+    if (m.recompensa) m.recompensa();
+    if (missaoAtual < MISSOES.length - 1) missaoAtual++;
+    log('Nova missão: ' + MISSOES[missaoAtual].objetivo, 'info');
+    atualizarMissaoUI();
+    salvarJogo();
+  });
+}
+
+function atualizarMissaoUI() {
+  const m = MISSOES[missaoAtual];
+  let txt = m.objetivo;
+  if (m.progresso && !m.completa()) txt += ' — ' + m.progresso();
+  if (m.completa() && m.aoCompletar) txt = '✔ Volte ao Ancião Baldric';
+  document.getElementById('missaoTexto').textContent = txt;
+
+  const contratoEl = document.getElementById('contratoTexto');
+  if (contratoEl) {
+    contratoEl.innerHTML = `<strong>CONTRATO</strong>${textoContratoAtual()}`;
+  }
+}
+
+let dialogoFila = [], dialogoAoFechar = null;
+function abrirDialogo(nome, paginas, aoFechar) {
+  dialogoFila = [...paginas];
+  dialogoAoFechar = aoFechar;
+  document.getElementById('dialogoNome').textContent = nome;
+  proximaPagina();
+  document.getElementById('dialogo').classList.add('aberto');
+}
+function proximaPagina() {
+  if (dialogoFila.length === 0) {
+    document.getElementById('dialogo').classList.remove('aberto');
+    if (dialogoAoFechar) { const f = dialogoAoFechar; dialogoAoFechar = null; f(); }
+    return;
+  }
+  document.getElementById('dialogoTexto').textContent = dialogoFila.shift();
+  document.getElementById('dialogoBtn').textContent = dialogoFila.length ? 'Continuar ▸' : 'Fechar';
+}
+document.getElementById('dialogoBtn').addEventListener('click', proximaPagina);
+
+// ---------- 6. PROJÉTEIS, TEXTOS FLUTUANTES E MOVIMENTO SUAVE ----------
+let projeteis = [], telegrafos = [], areasPerigo = [], flutuantes = [], efeitos = [], tremor = 0, relogio = 0;
+
+function atirar(de, alvo, dano, cor) {
+  som('tiro');
+  projeteis.push({ x0: de.rx + 16, y0: de.ry + 16, alvo, dano, cor, t: 0, dur: 320 });
+}
+
+function prepararTiro(de, alvo, dano, cor, atraso = 550) {
+  if (!de || !alvo || de.hp <= 0 || alvo.hp <= 0) return;
+  telegrafos.push({
+    de,
+    alvo,
+    dano,
+    cor,
+    tempo: atraso,
+    total: atraso,
+  });
+  efeitos.push({ x: alvo.x, y: alvo.y, tipo: 'ritual', tempo: 260 });
+}
+function tickTelegrafos(dt) {
+  for (const t of telegrafos) {
+    t.tempo -= dt;
+    if (t.tempo <= 0) {
+      t.feito = true;
+      const origemViva = t.de && t.de.hp > 0 && monstros.includes(t.de);
+      const alvoVivo =
+        t.alvo === jogador
+          ? jogador.hp > 0
+          : t.alvo && t.alvo.hp > 0 && !t.alvo.desmaiado;
+      if (origemViva && alvoVivo) {
+        atirar(t.de, t.alvo, t.dano, t.cor);
+      }
+    }
+  }
+  telegrafos = telegrafos.filter(t => !t.feito);
+}
+
+function criarAreaPerigo(x, y, dano, atraso = 900, raio = 0, cor = '#ff7020') {
+  if (!podeAndar(x, y)) return;
+  areasPerigo.push({
+    x,
+    y,
+    dano,
+    tempo: atraso,
+    total: atraso,
+    raio,
+    cor,
+  });
+}
+function chuvaOssea(rei) {
+  if (!rei || rei.hp <= 0) return;
+  const pontos = [
+    { x: jogador.x, y: jogador.y },
+    { x: jogador.x + irand(3) - 1, y: jogador.y + irand(3) - 1 },
+    { x: jogador.x + irand(5) - 2, y: jogador.y + irand(5) - 2 },
+  ];
+  for (const p of pontos) {
+    criarAreaPerigo(p.x, p.y, 18 + irand(10), 900, 0, '#ff7020');
+  }
+  som('ritual');
+  log('☠ O Rei Esquelo invoca Chuva Óssea!', 'morte');
+}
+function tickAreasPerigo(dt) {
+  for (const a of areasPerigo) {
+    a.tempo -= dt;
+    if (a.tempo <= 0) {
+      a.feito = true;
+      const jogadorNaArea = distCheb(jogador, a) <= a.raio;
+      if (jogadorNaArea) {
+        danoNoJogador(a.dano, 'área');
+      }
+      const c = companheiro();
+      if (c && distCheb(c, a) <= a.raio) {
+        c.hp -= Math.ceil(a.dano * 0.75);
+        marcarImpacto(c, 160);
+        flutuar(c, '-' + Math.ceil(a.dano * 0.75), '#ff9060');
+        if (c.hp <= 0 && !c.desmaiado) desmaiarCompanheiro(c);
+      }
+      efeitos.push({ x: a.x, y: a.y, tipo: 'fogo', tempo: 500 });
+      tremor = Math.max(tremor, 5);
+    }
+  }
+  areasPerigo = areasPerigo.filter(a => !a.feito);
+}
+
+function tickProjeteis(dt) {
+  for (const p of projeteis) {
+    p.t += dt;
+    if (p.t >= p.dur) {
+      p.feito = true;
+      const a = p.alvo;
+      if (a === jogador) danoNoJogador(p.dano, 'projétil');
+      else if (a.desmaiado !== undefined) {
+        a.hp -= p.dano;
+        marcarImpacto(a, 160);
+        flutuar(a, '-' + p.dano, '#ff9060');
+        if (a.hp <= 0 && !a.desmaiado) desmaiarCompanheiro(a);
+      }
+      else if (a.hp > 0) ferirAlvo(a, p.dano);
+    }
+  }
+  projeteis = projeteis.filter(p => !p.feito);
+}
+
+function flutuar(e, txt, cor) {
+  flutuantes.push({ rx: e.rx + 16 + (irand(9) - 4), ry: e.ry - 4, txt, cor, tempo: 800 });
+}
+
+function animar(e, dt, msPorTile) {
+  const ax = e.x * TILE, ay = e.y * TILE;
+  if (Math.abs(ax - e.rx) > TILE * 2.5 || Math.abs(ay - e.ry) > TILE * 2.5) {
+    e.rx = ax; e.ry = ay; return;
+  }
+  const v = TILE / msPorTile * dt * 1.15;
+  e.rx += Math.abs(ax - e.rx) <= v ? (ax - e.rx) : Math.sign(ax - e.rx) * v;
+  e.ry += Math.abs(ay - e.ry) <= v ? (ay - e.ry) : Math.sign(ay - e.ry) * v;
+}
+
+// ---------- 7. ÁUDIO ----------
+let audioCtx = null, mudo = false;
+function tocar(freq, dur, tipo = 'square', vol = 0.12, freqFim = null) {
+  if (mudo || !audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = tipo;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  if (freqFim) osc.frequency.exponentialRampToValueAtTime(freqFim, audioCtx.currentTime + dur);
+  g.gain.setValueAtTime(vol, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.connect(g); g.connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + dur);
+}
+function som(nome) {
+  switch (nome) {
+    case 'golpe':   tocar(160, .07, 'square', .09); break;
+    case 'critico': tocar(980, .06, 'square', .10); setTimeout(() => tocar(1380, .08, 'sine', .08), 45); break;
+    case 'dor':     tocar(110, .18, 'sawtooth', .12, 70); break;
+    case 'tiro':    tocar(700, .12, 'sine', .07, 220); break;
+    case 'magia':   tocar(300, .25, 'sawtooth', .1, 900); break;
+    case 'pocao':   tocar(400, .15, 'sine', .1, 620); break;
+    case 'moeda':   tocar(880, .08, 'sine', .1); setTimeout(() => tocar(1320, .1, 'sine', .1), 70); break;
+    case 'morte':   tocar(200, .25, 'square', .1, 60); break;
+    case 'gameover':tocar(220, .3, 'sawtooth', .14, 55); setTimeout(() => tocar(110, .5, 'sawtooth', .14, 40), 250); break;
+    case 'ritual':  tocar(200, .5, 'sine', .12, 800); break;
+    case 'vinculo': [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tocar(f, .18, 'sine', .12), i * 110)); break;
+    case 'falha':   tocar(300, .3, 'square', .1, 120); break;
+    case 'levelup': [523, 659, 784].forEach((f, i) => setTimeout(() => tocar(f, .15, 'square', .1), i * 100)); break;
+  }
+}
+document.getElementById('btnSom').addEventListener('pointerdown', e => {
+  e.preventDefault();
+  iniciarAudioSePreciso();
+  mudo = !mudo;
+  e.target.textContent = mudo ? '✕' : '♪';
+});
+
+// ---------- 8. RENDERIZAÇÃO ----------
+const tela = document.getElementById('tela');
+const ctx = tela.getContext('2d');
+
+function sprite(px, py, matriz, paleta, escala = 4) {
+  for (let y = 0; y < matriz.length; y++)
+    for (let x = 0; x < matriz[y].length; x++) {
+      const c = paleta[matriz[y][x]];
+      if (!c) continue;
+      ctx.fillStyle = c;
+      ctx.fillRect(px + x * escala, py + y * escala, escala, escala);
+    }
+}
+
+const SPRITES = {
+  jogador: [
+    [0,0,1,1,1,1,0,0],[0,1,2,2,2,2,1,0],[0,1,2,3,3,2,1,0],[0,0,2,2,2,2,0,0],
+    [0,4,4,4,4,4,4,0],[0,4,5,4,4,5,4,0],[0,0,6,0,0,6,0,0],[0,6,6,0,0,6,6,0],
+  ],
+  npc: [
+    [0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[0,1,2,3,3,2,1,0],[0,0,2,2,2,2,1,0],
+    [0,4,4,4,4,4,4,1],[0,4,4,4,4,4,4,0],[0,4,4,4,4,4,4,0],[0,0,4,0,0,4,0,0],
+  ],
+  Ratino: [
+    [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[1,0,0,1,1,1,0,0],[0,1,1,1,1,1,1,0],
+    [0,1,1,1,1,1,1,2],[0,0,1,1,1,1,0,0],[0,0,3,0,0,3,0,0],[0,0,0,0,0,0,0,0],
+  ],
+  Caranguejo: [
+    [0,0,1,0,0,1,0,0],[0,1,0,0,0,0,1,0],[1,0,2,2,2,2,0,1],[0,2,3,2,2,3,2,0],
+    [0,2,2,2,2,2,2,0],[1,0,2,2,2,2,0,1],[0,1,0,0,0,0,1,0],[0,0,1,0,0,1,0,0],
+  ],
+  Trolk: [
+    [0,0,1,1,1,1,0,0],[0,1,1,2,2,1,1,0],[0,1,3,1,1,3,1,0],[0,0,1,1,1,1,0,0],
+    [1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[0,0,4,0,0,4,0,0],[0,4,4,0,0,4,4,0],
+  ],
+  Esquelo: [
+    [0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[0,1,2,1,1,2,1,0],[0,0,1,2,2,1,0,0],
+    [0,0,1,1,1,1,0,0],[0,1,0,1,1,0,1,0],[0,0,0,1,1,0,0,0],[0,0,1,0,0,1,0,0],
+  ],
+  ReiEsquelo: [
+    [0,3,0,3,3,0,3,0],[0,3,3,3,3,3,3,0],[0,1,1,1,1,1,1,0],[0,1,4,1,1,4,1,0],
+    [0,0,1,2,2,1,0,0],[0,1,1,1,1,1,1,0],[0,1,0,1,1,0,1,0],[0,0,1,0,0,1,0,0],
+  ],
+  corpo: [
+    [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,1,1,0,0,0,0],[0,1,1,1,1,1,0,0],
+    [1,1,1,1,1,1,1,0],[0,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+  ],
+  Folium: [
+    [0,0,0,2,2,0,0,0],[0,0,2,2,2,2,0,0],[0,2,0,1,1,0,2,0],[0,0,1,1,1,1,0,0],
+    [0,1,3,1,1,3,1,0],[0,1,1,1,1,1,1,0],[0,0,1,1,1,1,0,0],[0,0,2,0,0,2,0,0],
+  ],
+  Aquari: [
+    [0,0,0,1,1,0,0,0],[0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[2,1,3,1,1,3,1,2],
+    [0,1,1,1,1,1,1,0],[0,1,1,2,2,1,1,0],[0,0,1,1,1,1,0,0],[0,0,0,2,2,0,0,0],
+  ],
+  Ignix: [
+    [0,2,0,0,0,0,2,0],[0,0,2,0,0,2,0,0],[0,0,1,1,1,1,0,0],[0,1,3,1,1,3,1,0],
+    [0,1,1,1,1,1,1,0],[2,1,1,1,1,1,1,2],[0,0,1,0,0,1,0,0],[0,0,2,0,0,2,0,0],
+  ],
+  Umbrix: [
+    [0,0,1,1,1,1,0,0],[0,1,1,1,1,1,1,0],[1,1,2,1,1,2,1,1],[1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[0,1,0,1,1,0,1,0],[1,0,0,0,0,0,0,1],
+  ],
+};
+const PALETAS = {
+  jogador:    { 1: '#3a2a1a', 2: '#e0b090', 3: '#2a2a3a', 4: '#8a2a2a', 5: '#d8b25a', 6: '#4a3a2a' },
+  npc:        { 1: '#d0ccc0', 2: '#e0b090', 3: '#2a2a3a', 4: '#5a4a7a' },
+  Ratino:     { 1: '#8a7a6a', 2: '#c0a090', 3: '#5a4a3a' },
+  Caranguejo:{ 1: '#b85838', 2: '#d87848', 3: '#fff0c0' },
+  Trolk:      { 1: '#6a8a4a', 2: '#4a6a2a', 3: '#e0e0d0', 4: '#5a4a3a' },
+  Esquelo:    { 1: '#d0ccc0', 2: '#1a1612' },
+  ReiEsquelo: { 1: '#e8e4d8', 2: '#1a1612', 3: '#d8b25a', 4: '#ff5020' },
+  corpo:      { 1: '#7a2a2a' },
+  Folium:     { 1: '#50c050', 2: '#2a8a3a', 3: '#0d2a10' },
+  Aquari:     { 1: '#50a0e0', 2: '#2a5aa0', 3: '#0d1a3a' },
+  Ignix:      { 1: '#e08030', 2: '#ffc040', 3: '#3a1505' },
+  Umbrix:     { 1: '#6a40a0', 2: '#e0d0ff', 3: '#2a1050' },
+};
+
+function desenharTile(t, px, py, mx, my) {
+  const varia = (Math.sin(mx * 12.9898 + my * 78.233) * 43758.5453) % 1;
+  switch (t) {
+    case 'G':
+      ctx.fillStyle = varia > 0.5 ? '#3a6a2a' : '#356328';
+      ctx.fillRect(px, py, TILE, TILE);
+      if (varia > 0.8) { ctx.fillStyle = '#4a7a3a'; ctx.fillRect(px + 8, py + 12, 3, 3); ctx.fillRect(px + 20, py + 22, 3, 3); }
+      break;
+    case 'D':
+      ctx.fillStyle = varia > 0.5 ? '#7a5a3a' : '#745536';
+      ctx.fillRect(px, py, TILE, TILE);
+      break;
+    case 'A': {
+      const onda = Math.sin(relogio / 400 + mx + my) * 6;
+      ctx.fillStyle = '#1a3a6a'; ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#2a4a8a';
+      ctx.fillRect(px + 4 + onda, py + 10, 12, 2);
+      ctx.fillRect(px + 14 - onda, py + 22, 10, 2);
+      break;
+    }
+    case 'S':
+      ctx.fillStyle = varia > 0.5 ? '#c9ad72' : '#d7bd82';
+      ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#f0dc9a';
+      if (varia > 0.2) ctx.fillRect(px + 6, py + 8, 4, 2);
+      if (varia > 0.55) ctx.fillRect(px + 20, py + 21, 5, 2);
+      ctx.fillStyle = '#b89556';
+      if (varia > 0.75) ctx.fillRect(px + 13, py + 15, 2, 2);
+      break;
+    case 'T':
+      ctx.fillStyle = '#3a6a2a'; ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#4a3a2a'; ctx.fillRect(px + 13, py + 20, 6, 10);
+      ctx.fillStyle = '#1a4a1a'; ctx.beginPath(); ctx.arc(px + 16, py + 12, 12, 0, 7); ctx.fill();
+      ctx.fillStyle = '#2a5a22'; ctx.beginPath(); ctx.arc(px + 12, py + 10, 7, 0, 7); ctx.fill();
+      break;
+    case 'P':
+      ctx.fillStyle = varia > 0.5 ? '#4a4a52' : '#44444c';
+      ctx.fillRect(px, py, TILE, TILE);
+      break;
+    case 'M':
+      ctx.fillStyle = '#2a2a32'; ctx.fillRect(px, py, TILE, TILE);
+      ctx.fillStyle = '#3a3a44';
+      ctx.fillRect(px + 2, py + 2, 13, 6); ctx.fillRect(px + 17, py + 2, 13, 6);
+      ctx.fillRect(px + 2, py + 10, 28, 6);
+      ctx.fillRect(px + 2, py + 18, 13, 6); ctx.fillRect(px + 17, py + 18, 13, 6);
+      ctx.fillRect(px + 2, py + 26, 28, 4);
+      break;
+  }
+}
+
+function barraVida(px, py, hp, maxHp, cor) {
+  const pct = Math.max(0, hp / maxHp);
+  ctx.fillStyle = '#000'; ctx.fillRect(px + 2, py - 6, 28, 4);
+  ctx.fillStyle = cor || (pct > 0.6 ? '#40c040' : pct > 0.3 ? '#e0a020' : '#e03020');
+  ctx.fillRect(px + 3, py - 5, 26 * pct, 2);
+}
+
+function desenharFlashImpacto(e, px, py) {
+  if (!e || !e.hitFlash) return;
+  ctx.globalAlpha = Math.min(0.55, e.hitFlash / 140 * 0.55);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(px + 3, py + 3, TILE - 6, TILE - 6);
+  ctx.globalAlpha = 1;
+}
+
+
+let camPx = 0, camPy = 0, camPronta = false;
+function desenhar() {
+  const alvoCamPx = Math.max(0, Math.min((MAPA_W - VISTA_W) * TILE, jogador.rx + TILE / 2 - VISTA_W * TILE / 2));
+  const alvoCamPy = Math.max(0, Math.min((MAPA_H - VISTA_H) * TILE, jogador.ry + TILE / 2 - VISTA_H * TILE / 2));
+  if (!camPronta || Math.abs(alvoCamPx - camPx) > TILE * 5 || Math.abs(alvoCamPy - camPy) > TILE * 5) {
+    camPx = alvoCamPx;
+    camPy = alvoCamPy;
+    camPronta = true;
+  } else {
+    camPx += (alvoCamPx - camPx) * 0.22;
+    camPy += (alvoCamPy - camPy) * 0.22;
+  }
+  const sx = (Math.random() - 0.5) * tremor, sy = (Math.random() - 0.5) * tremor;
+  tremor *= 0.86;
+  const cx0 = camPx + sx, cy0 = camPy + sy;
+
+  const t0x = Math.floor(cx0 / TILE), t0y = Math.floor(cy0 / TILE);
+  const offX = cx0 - t0x * TILE, offY = cy0 - t0y * TILE;
+  for (let vy = 0; vy <= VISTA_H; vy++)
+    for (let vx = 0; vx <= VISTA_W; vx++) {
+      const mx = t0x + vx, my = t0y + vy;
+      if (mx < 0 || my < 0 || mx >= MAPA_W || my >= MAPA_H) continue;
+      desenharTile(mapa[my][mx], vx * TILE - offX, vy * TILE - offY, mx, my);
+    }
+
+  const naTela = e => e.rx > cx0 - TILE && e.rx < cx0 + VISTA_W * TILE + TILE
+                   && e.ry > cy0 - TILE && e.ry < cy0 + VISTA_H * TILE + TILE;
+  const telaX = e => e.rx - cx0, telaY = e => e.ry - cy0;
+
+  for (const a of areasPerigo) {
+    const px = a.x * TILE - cx0;
+    const py = a.y * TILE - cy0;
+    const perigo = 1 - (a.tempo / a.total);
+    ctx.globalAlpha = 0.25 + perigo * 0.45;
+    ctx.fillStyle = a.cor;
+    ctx.fillRect(px + 4, py + 4, TILE - 8, TILE - 8);
+    ctx.globalAlpha = 0.8;
+    ctx.strokeStyle = '#ffd080';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px + 3, py + 3, TILE - 6, TILE - 6);
+    ctx.globalAlpha = 1;
+  }
+
+  for (const c of corpos) {
+    if (!naTela(c)) continue;
+
+    const px = telaX(c);
+    const py = telaY(c);
+
+    if (c.loot && c.loot.equipamento) {
+      const item = c.loot.equipamento;
+      const raridade = RARIDADES[item.raridade] || RARIDADES.comum;
+
+      ctx.fillStyle = raridade.cor + '44';
+      ctx.beginPath();
+      ctx.arc(px + TILE / 2, py + TILE / 2, 15 + Math.sin(relogio / 220) * 2, 0, 7);
+      ctx.fill();
+
+      ctx.fillStyle = raridade.cor;
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('⬥', px + TILE / 2, py - 8);
+    }
+
+    sprite(px, py, SPRITES.corpo, PALETAS.corpo);
+  }
+
+  for (const b of baus) {
+    if (!naTela({ rx: b.x * TILE, ry: b.y * TILE })) continue;
+    const px = b.x * TILE - cx0, py = b.y * TILE - cy0;
+    ctx.fillStyle = b.aberto ? '#3a2a1a' : '#7a5a2a';
+    ctx.fillRect(px + 6, py + 10, 20, 16);
+    ctx.fillStyle = b.aberto ? '#2a1c10' : '#5a4020';
+    ctx.fillRect(px + 6, py + 6, 20, 6);
+    if (!b.aberto) {
+      ctx.fillStyle = '#ffd87a';
+      ctx.fillRect(px + 14, py + 12, 4, 6);
+    }
+  }
+
+  for (const s of santuarios) {
+    if (!naTela({ rx: s.x * TILE, ry: s.y * TILE })) continue;
+    const px = s.x * TILE - cx0, py = s.y * TILE - cy0;
+    if (!s.usado) {
+      ctx.fillStyle = `rgba(138,240,208,${0.12 + Math.sin(relogio / 250) * 0.06})`;
+      ctx.beginPath();
+      ctx.arc(px + TILE / 2, py + TILE / 2, 15 + Math.sin(relogio / 250) * 2, 0, 7);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#5a5a62'; ctx.fillRect(px + 9, py + 22, 14, 7);
+    ctx.fillStyle = '#6a6a72'; ctx.fillRect(px + 12, py + 14, 8, 9);
+    ctx.fillStyle = s.usado ? '#4a5a56' : '#8af0d0';
+    ctx.beginPath();
+    ctx.moveTo(px + 16, py + 3);
+    ctx.lineTo(px + 21, py + 9);
+    ctx.lineTo(px + 16, py + 15);
+    ctx.lineTo(px + 11, py + 9);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  if (naTela(NPC)) {
+    const px = telaX(NPC), py = telaY(NPC);
+    sprite(px, py, SPRITES.npc, PALETAS.npc);
+    const m = MISSOES[missaoAtual];
+    const disponivel = missaoAtual === 0 || m.completa();
+    ctx.fillStyle = disponivel ? '#ffd020' : '#909090';
+    ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(disponivel ? '!' : '?', px + TILE / 2, py - 8 + Math.sin(relogio / 250) * 2);
+  }
+
+  for (const g of selvagens) {
+    if (!naTela(g)) continue;
+    const px = telaX(g), py = telaY(g);
+    ctx.fillStyle = GUARDIOES[g.especie].cor + '30';
+    ctx.beginPath();
+    ctx.arc(px + TILE / 2, py + TILE / 2, 14 + Math.sin(relogio / 300) * 2, 0, 7);
+    ctx.fill();
+    if (jogador.alvo === g) {
+      ctx.strokeStyle = '#e03020'; ctx.lineWidth = 2;
+      ctx.strokeRect(px + 1, py + 1, TILE - 2, TILE - 2);
+    }
+    sprite(px, py, SPRITES[g.especie], PALETAS[g.especie]);
+    desenharFlashImpacto(g, px, py);
+    barraVida(px, py, g.hp, g.maxHp);
+    ctx.font = '9px monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#6ad0c0';
+    ctx.fillText(g.especie, px + TILE / 2, py - 8);
+    if (jogador.alvo === g) {
+      ctx.fillStyle = '#a0f0e0';
+      ctx.fillText(`vínculo ${Math.round(chanceVinculo(g) * 100)}%`, px + TILE / 2, py + TILE + 10);
+    }
+  }
+
+  for (const m of monstros) {
+    if (!naTela(m)) continue;
+    const px = telaX(m), py = telaY(m);
+    if (jogador.alvo === m) {
+      ctx.strokeStyle = '#e03020'; ctx.lineWidth = 2;
+      ctx.strokeRect(px + 1, py + 1, TILE - 2, TILE - 2);
+    }
+    if (m.lento > 0) {
+      ctx.strokeStyle = 'rgba(112,200,255,.75)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(px + TILE / 2, py + TILE / 2, 17 + Math.sin(relogio / 180) * 2, 0, 7);
+      ctx.stroke();
+    }
+    if (m.marcadoSombrio > 0) {
+      ctx.strokeStyle = 'rgba(208,144,255,.8)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(px + TILE / 2, py + TILE / 2, 21 + Math.sin(relogio / 160) * 2, 0, 7);
+      ctx.stroke();
+    }
+    sprite(px, py, SPRITES[m.tipo], PALETAS[m.tipo]);
+    desenharFlashImpacto(m, px, py);
+    barraVida(px, py, m.hp, m.maxHp);
+    ctx.fillStyle = BESTIARIO[m.tipo].boss ? '#ff5020' : '#40c040';
+    ctx.font = '9px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(nomeDe(m.tipo), px + TILE / 2, py - 8);
+  }
+
+  if (jogador.caminho && jogador.caminho.length) {
+    const fim = jogador.caminho[jogador.caminho.length - 1];
+    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1;
+    ctx.strokeRect(fim.x * TILE - cx0 + 6, fim.y * TILE - cy0 + 6, TILE - 12, TILE - 12);
+  }
+
+  const comp = companheiro();
+  if (comp && naTela(comp)) {
+    sprite(telaX(comp), telaY(comp), SPRITES[comp.especie], PALETAS[comp.especie]);
+    desenharFlashImpacto(comp, telaX(comp), telaY(comp));
+    barraVida(telaX(comp), telaY(comp), comp.hp, comp.maxHp, '#40c0a0');
+  }
+
+  sprite(telaX(jogador), telaY(jogador), SPRITES.jogador, PALETAS.jogador);
+  desenharFlashImpacto(jogador, telaX(jogador), telaY(jogador));
+  barraVida(telaX(jogador), telaY(jogador), jogador.hp, maxHpAtual());
+  if (jogador.escudoAtivo > 0 || jogador.barreira > 0 || jogador.esquivaAtiva > 0) {
+    ctx.strokeStyle = jogador.barreira > 0 ? 'rgba(176,122,255,.7)'
+                    : jogador.escudoAtivo > 0 ? 'rgba(216,178,90,.7)'
+                    : 'rgba(255,255,255,.5)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(telaX(jogador) + TILE / 2, telaY(jogador) + TILE / 2,
+            17 + Math.sin(relogio / 150) * 2, 0, 7);
+    ctx.stroke();
+  }
+
+  for (const tg of telegrafos) {
+    if (!tg.de || !tg.alvo) continue;
+    const perigo = 1 - (tg.tempo / tg.total);
+    ctx.globalAlpha = 0.25 + perigo * 0.45;
+    ctx.strokeStyle = tg.cor || '#ff7020';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(telaX(tg.de) + TILE / 2, telaY(tg.de) + TILE / 2);
+    ctx.lineTo(telaX(tg.alvo) + TILE / 2, telaY(tg.alvo) + TILE / 2);
+    ctx.stroke();
+    ctx.strokeRect(
+      telaX(tg.alvo) + 5,
+      telaY(tg.alvo) + 5,
+      TILE - 10,
+      TILE - 10
+    );
+    ctx.globalAlpha = 1;
+  }
+
+  for (const p of projeteis) {
+    const f = p.t / p.dur;
+    const px = p.x0 + (p.alvo.rx + 16 - p.x0) * f;
+    const py = p.y0 + (p.alvo.ry + 16 - p.y0) * f - Math.sin(f * Math.PI) * 14;
+    ctx.save();
+    ctx.translate(px - cx0, py - cy0);
+    ctx.rotate(relogio / 60);
+    ctx.fillStyle = p.cor;
+    ctx.fillRect(-4, -2, 8, 4);
+    ctx.restore();
+  }
+
+  for (const e of efeitos) {
+    const ecx = e.x * TILE + TILE / 2 - cx0, ecy = e.y * TILE + TILE / 2 - cy0;
+    if (e.tipo === 'ritual') {
+      ctx.strokeStyle = `rgba(106,208,192,${e.tempo / 800})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(ecx, ecy, 6 + (800 - e.tempo) / 18, 0, 7);
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = `rgba(255,${100 + irand(100)},20,${e.tempo / 400})`;
+      ctx.beginPath();
+      ctx.arc(ecx, ecy, 8 + irand(8), 0, 7);
+      ctx.fill();
+    }
+  }
+
+  ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+  for (const f of flutuantes) {
+    ctx.globalAlpha = Math.min(1, f.tempo / 500);
+    ctx.fillStyle = f.cor;
+    ctx.fillText(f.txt, f.rx - cx0, f.ry - cy0 - (800 - f.tempo) * 0.035);
+  }
+  ctx.globalAlpha = 1;
+}
+
+const mini = document.getElementById('minimapa').getContext('2d');
+const miniBase = document.createElement('canvas');
+miniBase.width = MAPA_W * 2; miniBase.height = MAPA_H * 2;
+(() => {
+  const g = miniBase.getContext('2d');
+  const cores = { G: '#3a6a2a', D: '#7a5a3a', A: '#1a3a6a', S: '#d7bd82', T: '#1a4a1a', P: '#4a4a52', M: '#22222a' };
+  for (let y = 0; y < MAPA_H; y++)
+    for (let x = 0; x < MAPA_W; x++) {
+      g.fillStyle = cores[mapa[y][x]];
+      g.fillRect(x * 2, y * 2, 2, 2);
+    }
+})();
+function desenharMinimapa() {
+  mini.drawImage(miniBase, 0, 0);
+  const ponto = (e, cor, r = 2) => { mini.fillStyle = cor; mini.fillRect(e.x * 2 - r + 2, e.y * 2 - r + 2, r, r); };
+  monstros.forEach(m => ponto(m, BESTIARIO[m.tipo].boss ? '#ff5020' : '#e04040'));
+  selvagens.forEach(s => ponto(s, '#6ad0c0'));
+  baus.forEach(b => { if (!b.aberto) ponto(b, '#ffd87a'); });
+  santuarios.forEach(s => ponto(s, s.usado ? '#5a6a66' : '#8af0d0'));
+  ponto(NPC, '#ffd020');
+  ponto(jogador, '#ffffff', 3);
+}
+
+// ---------- 9. ENTRADA E UI ----------
+const joystick = {
+  ativo: false,
+  id: null,
+  dx: 0,
+  dy: 0,
+};
+function atualizarJoystickVisual() {
+  const knob = document.getElementById('joyKnob');
+  if (!knob) return;
+  const max = 40;
+  knob.style.transform = `translate(${joystick.dx * max}px, ${joystick.dy * max}px)`;
+}
+function limparJoystick() {
+  joystick.ativo = false;
+  joystick.id = null;
+  joystick.dx = 0;
+  joystick.dy = 0;
+  teclas.cima = false;
+  teclas.baixo = false;
+  teclas.esq = false;
+  teclas.dir = false;
+  atualizarJoystickVisual();
+}
+function moverJoystick(e) {
+  const base = document.getElementById('joyBase');
+  const r = base.getBoundingClientRect();
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+  let dx = e.clientX - cx;
+  let dy = e.clientY - cy;
+  const dist = Math.hypot(dx, dy);
+  const max = r.width * 0.34;
+  if (dist > max) {
+    dx = dx / dist * max;
+    dy = dy / dist * max;
+  }
+  joystick.dx = dx / max;
+  joystick.dy = dy / max;
+  // v4.7: zona morta menor facilita acionar diagonal em tela de celular.
+  const zonaMorta = 0.22;
+  teclas.esq = joystick.dx < -zonaMorta;
+  teclas.dir = joystick.dx > zonaMorta;
+  teclas.cima = joystick.dy < -zonaMorta;
+  teclas.baixo = joystick.dy > zonaMorta;
+  atualizarJoystickVisual();
+}
+const joyEl = document.getElementById('joystick');
+joyEl.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  iniciarAudioSePreciso();
+  joystick.ativo = true;
+  joystick.id = e.pointerId;
+  joyEl.setPointerCapture(e.pointerId);
+  jogador.caminho = null;
+  cancelarAutomacoesDeCombate();
+  moverJoystick(e);
+});
+joyEl.addEventListener('pointermove', e => {
+  if (!joystick.ativo || e.pointerId !== joystick.id) return;
+  e.preventDefault();
+  moverJoystick(e);
+});
+joyEl.addEventListener('pointerup', e => {
+  if (e.pointerId !== joystick.id) return;
+  e.preventDefault();
+  limparJoystick();
+});
+joyEl.addEventListener('pointercancel', e => {
+  if (e.pointerId !== joystick.id) return;
+  e.preventDefault();
+  limparJoystick();
+});
+
+function iniciarAudioSePreciso() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+document.getElementById('fecharLoja').addEventListener('click', fecharLoja);
+document.getElementById('comprarPocao').addEventListener('click', comprarPocao);
+document.getElementById('comprarFragmento').addEventListener('click', comprarFragmento);
+document.getElementById('comprarCura').addEventListener('click', comprarCura);
+
+document.getElementById('btnInteragir').addEventListener('pointerdown', e => {
+  e.preventDefault();
+  iniciarAudioSePreciso();
+  interagir();
+});
+document.getElementById('btnEspecial').addEventListener('pointerdown', e => {
+  e.preventDefault();
+  iniciarAudioSePreciso();
+  usarEspecial();
+});
+document.getElementById('btnMagia').addEventListener('pointerdown', e => {
+  e.preventDefault();
+  iniciarAudioSePreciso();
+  lancarMagia();
+});
+document.getElementById('btnPocao').addEventListener('pointerdown', e => {
+  e.preventDefault();
+  iniciarAudioSePreciso();
+  usarPocao();
+});
+document.getElementById('btnForjar').addEventListener('pointerdown', e => {
+  e.preventDefault();
+  iniciarAudioSePreciso();
+  forjarNucleo();
+});
+document.getElementById('painelGuardiao').addEventListener('pointerdown', e => { e.preventDefault(); trocarGuardiao(); });
+
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'arrowup' || k === 'w') teclas.cima = true;
+  if (k === 'arrowdown' || k === 's') teclas.baixo = true;
+  if (k === 'arrowleft' || k === 'a') teclas.esq = true;
+  if (k === 'arrowright' || k === 'd') teclas.dir = true;
+  if (k === ' ') { e.preventDefault(); lancarMagia(); }
+  if (k === '1') usarPocao();
+  if (k === '2') forjarNucleo();
+  if (k === '3') trocarGuardiao();
+  if (k === 'e') interagir();
+  if (k === 'q') usarEspecial();
+});
+window.addEventListener('keyup', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'arrowup' || k === 'w') teclas.cima = false;
+  if (k === 'arrowdown' || k === 's') teclas.baixo = false;
+  if (k === 'arrowleft' || k === 'a') teclas.esq = false;
+  if (k === 'arrowright' || k === 'd') teclas.dir = false;
+});
+
+tela.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  iniciarAudioSePreciso();
+
+  const r = tela.getBoundingClientRect();
+  const escala = Math.min(r.width / tela.width, r.height / tela.height);
+  const padX = (r.width - tela.width * escala) / 2;
+  const padY = (r.height - tela.height * escala) / 2;
+  const relX = e.clientX - r.left, relY = e.clientY - r.top;
+  if (relX < padX || relX > r.width - padX || relY < padY || relY > r.height - padY) return;
+  const cx = (relX - padX) / escala + camPx;
+  const cy = (relY - padY) / escala + camPy;
+  const tx = Math.floor(cx / TILE);
+  const ty = Math.floor(cy / TILE);
+
+  const selvagem = selvagens.find(s => s.x === tx && s.y === ty);
+  if (selvagem) {
+    if (distCheb(jogador, selvagem) <= 1 && jogador.nucleos > 0) {
+      ritualDeVinculo(selvagem);
+    } else {
+      const dica = jogador.nucleos > 0
+        ? 'Enfraqueça-o e toque nele adjacente para o ritual.'
+        : 'Enfraqueça-o — mas você precisará de um Núcleo (◉).';
+      mirarAlvo(selvagem, `${selvagem.especie} na mira. ${dica}`, 'vinculo');
+    }
+    return;
+  }
+  const monstro = monstros.find(m => m.x === tx && m.y === ty);
+  if (monstro) {
+    mirarAlvo(monstro, `${nomeDe(monstro.tipo)} na mira.`, 'info');
+    return;
+  }
+  const corpo = corpos.find(c => c.x === tx && c.y === ty);
+  if (corpo) return saquear(corpo);
+  const bau = baus.find(b => b.x === tx && b.y === ty);
+  if (bau) {
+    if (distCheb(jogador, bau) <= 1) abrirBau(bau);
+    else {
+      const destino = tileAdjacenteLivre(bau);
+      if (destino) jogador.caminho = acharCaminho(jogador, destino);
+      else log('Não há caminho livre até o baú.', 'info');
+    }
+    return;
+  }
+  const santuario = santuarios.find(s => s.x === tx && s.y === ty);
+  if (santuario) {
+    if (distCheb(jogador, santuario) <= 1) usarSantuario(santuario);
+    else {
+      const destino = tileAdjacenteLivre(santuario);
+      if (destino) jogador.caminho = acharCaminho(jogador, destino);
+    }
+    return;
+  }
+  if (NPC.x === tx && NPC.y === ty) {
+    if (distCheb(jogador, NPC) <= 1) falarComNPC();
+    else {
+      const destino = tileAdjacenteLivre(NPC);
+      if (destino) {
+        jogador.caminho = acharCaminho(jogador, destino);
+        log('Aproxime-se do Ancião para conversar.', 'info');
+      } else {
+        log('Não há caminho livre até o Ancião.', 'info');
+      }
+    }
+    return;
+  }
+  if (podeAndar(tx, ty)) {
+    cancelarAutomacoesDeCombate();
+    jogador.caminho = acharCaminho(jogador, { x: tx, y: ty });
+    if (!jogador.caminho) log('Não há caminho até lá.', 'info');
+  }
+});
+
+const elConsole = document.getElementById('console');
+function log(texto, tipo = 'info') {
+  const div = document.createElement('div');
+  div.className = 'msg-' + tipo;
+  div.textContent = texto;
+  elConsole.appendChild(div);
+  while (elConsole.children.length > 5) elConsole.removeChild(elConsole.firstChild);
+}
+
+function atualizarDicaAcao() {
+  const el = document.getElementById('dicaAcao');
+  if (!el) return;
+  if (distCheb(jogador, NPC) <= 1) {
+    el.style.display = 'block';
+    el.textContent = 'Falar';
+    return;
+  }
+  if (corpos.some(c => distCheb(jogador, c) <= 1)) {
+    el.style.display = 'block';
+    el.textContent = 'Saquear';
+    return;
+  }
+  if (baus.some(b => !b.aberto && distCheb(jogador, b) <= 1)) {
+    el.style.display = 'block';
+    el.textContent = 'Abrir';
+    return;
+  }
+  if (santuarios.some(s => !s.usado && distCheb(jogador, s) <= 1)) {
+    el.style.display = 'block';
+    el.textContent = 'Orar';
+    return;
+  }
+  const selvagem = selvagens.find(s => distCheb(jogador, s) <= 1);
+  if (selvagem) {
+    el.style.display = 'block';
+    el.textContent = jogador.nucleos > 0 ? 'Vínculo' : 'Mirar';
+    return;
+  }
+  if (monstros.some(m => distCheb(jogador, m) <= 1)) {
+    el.style.display = 'block';
+    el.textContent = 'Mirar';
+    return;
+  }
+  el.style.display = 'none';
+}
+
+function atualizarPainelAlvo() {
+  const el = document.getElementById('painelAlvo');
+  const a = jogador.alvo;
+  if (!a || a.hp <= 0) {
+    jogador.alvo = null;
+    jogador.persegueAlvo = false;
+    jogador.acaoPendente = null;
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'block';
+  el.classList.toggle('selvagem', !!a.selvagem);
+  document.getElementById('alvoNome').textContent = a.selvagem ? a.especie : nomeDe(a.tipo);
+  document.getElementById('alvoTipo').textContent =
+    a.selvagem ? 'Guardião Selvagem'
+    : (BESTIARIO[a.tipo].boss ? 'Chefe' : 'Monstro');
+  document.getElementById('alvoBarra').style.width =
+    (100 * Math.max(0, a.hp) / a.maxHp) + '%';
+  document.getElementById('alvoHp').textContent = `${Math.max(0, a.hp)}/${a.maxHp}`;
+}
+
+function atualizarUI() {
+  const set = (barra, txt, atual, max, sufixo) => {
+    document.querySelector(`#${barra} > div`).style.width = (100 * Math.max(0, atual) / max) + '%';
+    document.getElementById(txt).textContent = sufixo;
+  };
+  set('barraHP', 'txtHP', jogador.hp, maxHpAtual(), `${Math.max(0, jogador.hp)}/${maxHpAtual()}`);
+  set('barraMP', 'txtMP', jogador.mp, maxMpAtual(), `${jogador.mp}/${maxMpAtual()}`);
+  const base = expParaNivel(jogador.nivel), prox = expParaNivel(jogador.nivel + 1);
+  const pct = Math.max(0, (jogador.exp - base) / (prox - base));
+  document.querySelector('#barraXP > div').style.width = (100 * pct) + '%';
+  document.getElementById('txtXP').textContent = `nível ${jogador.nivel + 1} em ${prox - jogador.exp} exp`;
+  document.getElementById('txtNivel').textContent = jogador.nivel;
+  document.getElementById('txtGold').textContent = jogador.gold;
+  document.getElementById('txtFrag').textContent = jogador.fragmentos;
+  document.getElementById('txtNuc').textContent = jogador.nucleos;
+  garantirMateriaisJogador();
+  const biomaId = biomaJogador();
+  const bioma = BIOMAS[biomaId] || BIOMAS.campos;
+  const txtBioma = document.getElementById('txtBioma');
+  if (txtBioma) {
+    txtBioma.textContent = bioma.nome;
+    txtBioma.style.color = bioma.cor;
+  }
+  const txtMateriais = document.getElementById('txtMateriais');
+  if (txtMateriais) {
+    txtMateriais.textContent = textoMateriaisCompacto();
+  }
+  document.getElementById('lblPocao').textContent = 'x' + jogador.pocoes;
+  document.getElementById('lblForjar').textContent = `⬡${Math.min(3, jogador.fragmentos)}/3`;
+  document.getElementById('lblEspecial').textContent =
+    jogador.cdEspecial > 0 ? Math.ceil(jogador.cdEspecial / 1000) + 's'
+    : (jogador.classe ? CLASSES[jogador.classe].especial : '--');
+  const classeAtual = jogador.classe ? CLASSES[jogador.classe] : null;
+  if (classeAtual) {
+    const lblMagia = document.querySelector('#btnMagia small');
+    lblMagia.textContent = jogador.cdMagia > 0
+      ? Math.ceil(jogador.cdMagia / 1000) + 's'
+      : `${classeAtual.custo} mana`;
+  }
+
+  document.getElementById('btnMagia').classList.toggle('em-recarga', jogador.cdMagia > 0);
+  document.getElementById('btnMagia').classList.toggle('pronto', jogador.cdMagia <= 0);
+  document.getElementById('btnEspecial').classList.toggle('em-recarga', jogador.cdEspecial > 0);
+  document.getElementById('btnEspecial').classList.toggle('pronto', jogador.cdEspecial <= 0);
+  document.getElementById('btnPocao').classList.toggle('em-recarga', jogador.pocoes <= 0);
+
+  const painel = document.getElementById('painelGuardiao');
+  garantirEquipamentos();
+
+  const eq = jogador.equipamentos;
+  const armaTxt = nomeEquipCurto(eq.arma);
+  const armaduraTxt = nomeEquipCurto(eq.armadura);
+  const amuletoTxt = nomeEquipCurto(eq.amuleto);
+
+  if (equipe.length) {
+    const g = equipe[ativo];
+    painel.style.display = 'block';
+
+    const hab = GUARDIOES[g.especie].habilidade || '—';
+    const cdHab = g.cdHabilidade > 0 ? Math.ceil(g.cdHabilidade / 1000) + 's' : 'pronta';
+
+    painel.innerHTML = `${g.especie} Lv${g.nivel} ${g.desmaiado ? '(desmaiado ' + Math.ceil(g.tRevive / 1000) + 's)' : ''}
+      <div class="mini"><div style="width:${100 * Math.max(0, g.hp) / g.maxHp}%"></div></div>
+      <small>
+        ${hab}: ${cdHab}<br>
+        ⚔ ${armaTxt}<br>
+        ▣ ${armaduraTxt}<br>
+        ◇ ${amuletoTxt}<br>
+        Coleção ${equipe.length}/${Object.keys(GUARDIOES).length}${jogador.bencao ? ' ✦' : ''} · ${equipe.length > 1 ? 'toque p/ trocar' : GUARDIOES[g.especie].bioma}
+      </small>`;
+  } else {
+    painel.style.display = 'block';
+    painel.innerHTML = `Equipamentos
+      <div class="mini"><div style="width:100%"></div></div>
+      <small>
+        ⚔ ${armaTxt}<br>
+        ▣ ${armaduraTxt}<br>
+        ◇ ${amuletoTxt}
+      </small>`;
+  }
+}
+
+document.getElementById('btnComecar').addEventListener('click', () => {
+  if (!temSave) aplicarClasse(classeEscolhida);
+  document.getElementById('intro').style.display = 'none';
+  atualizarMissaoUI();
+  if (temSave) {
+    log('Progresso carregado.', 'info');
+  } else {
+    log(`Você iniciou como ${CLASSES[jogador.classe].nome}.`, 'info');
+    log('Fale com o Ancião Baldric — o velho de manto roxo ao lado do templo.', 'info');
+    log('v4.11: toque num inimigo para perseguir e atacar automaticamente; habilidade agora fica em buffer até chegar perto.', 'info');
+  }
+  salvarJogo();
+});
+
+// ---------- SAVE/LOAD AUTOMÁTICO ----------
+const SAVE_KEY = 'valdria_save_v2_equipamentos';
+let saveBloqueado = false;
+const podeSalvar = (() => {
+  try { localStorage.setItem('_t', '1'); localStorage.removeItem('_t'); return true; }
+  catch { return false; }
+})();
+
+function salvarJogo() {
+  if (!podeSalvar || saveBloqueado) return;
+  garantirEquipamentos();
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      v: 2,
+      j: { x: jogador.x, y: jogador.y, hp: jogador.hp, maxHp: jogador.maxHp,
+           mp: jogador.mp, maxMp: jogador.maxMp, nivel: jogador.nivel, exp: jogador.exp,
+           gold: jogador.gold, pocoes: jogador.pocoes, fragmentos: jogador.fragmentos,
+           nucleos: jogador.nucleos, temAmuleto: jogador.temAmuleto,
+           bencao: !!jogador.bencao,
+           classe: jogador.classe,
+           danoBase: jogador.danoBase,
+           alcanceAtaque: jogador.alcanceAtaque,
+           materiais: jogador.materiais,
+           equipamentos: jogador.equipamentos },
+      equipe: equipe.map(g => ({
+        especie: g.especie,
+        hp: g.hp,
+        maxHp: g.maxHp,
+        nivel: g.nivel,
+        exp: g.exp,
+        cdHabilidade: Math.max(0, g.cdHabilidade || 0),
+      })),
+      ativo, missaoAtual, mortes,
+      contratoAtual,
+      progressoContrato,
+      baus: baus.map(b => b.aberto),
+      santuarios: santuarios.map(s => ({
+        usado: s.usado,
+        tRecarga: Math.max(0, s.tRecarga || 0),
+      })),
+    }));
+  } catch { /* sem espaço ou bloqueado: segue sem salvar */ }
+}
+
+function carregarJogo() {
+  if (!podeSalvar) return false;
+  try {
+    const bruto = localStorage.getItem(SAVE_KEY) || localStorage.getItem('valdria_save_v1');
+    if (!bruto) return false;
+    const s = JSON.parse(bruto);
+    if (!s || !s.j) return false;
+
+    Object.assign(jogador, s.j);
+    garantirEquipamentos();
+    garantirMateriaisJogador();
+
+    if (!jogador.classe || !CLASSES[jogador.classe]) {
+      jogador.classe = 'cavaleiro';
+      jogador.danoBase = CLASSES.cavaleiro.dano;
+      jogador.alcanceAtaque = CLASSES.cavaleiro.alcanceAtaque;
+    }
+    if (jogador.classe && CLASSES[jogador.classe]) {
+      const c = CLASSES[jogador.classe];
+      jogador.danoBase = jogador.danoBase || c.dano;
+      jogador.alcanceAtaque = jogador.alcanceAtaque || c.alcanceAtaque;
+    }
+    jogador.rx = jogador.x * TILE;
+    jogador.ry = jogador.y * TILE;
+    jogador.alvo = null;
+    jogador.caminho = null;
+    jogador.cdMover = 0;
+    jogador.cdAtaque = 0;
+    jogador.cdMagia = 0;
+    jogador.cdEspecial = 0;
+    jogador.escudoAtivo = 0;
+    jogador.esquivaAtiva = 0;
+    jogador.barreira = 0;
+    jogador.persegueAlvo = false;
+    jogador.acaoPendente = null;
+    jogador.hitFlash = 0;
+    jogador.hp = Math.min(maxHpAtual(), jogador.hp);
+    jogador.mp = Math.min(maxMpAtual(), jogador.mp);
+
+    equipe = Array.isArray(s.equipe)
+      ? s.equipe.map(g => ({
+          ...g,
+          x: jogador.x,
+          y: jogador.y,
+          rx: jogador.rx,
+          ry: jogador.ry,
+          cdMover: 0,
+          cdAtaque: 0,
+          cdHabilidade: Math.max(0, g.cdHabilidade ?? 2500),
+          desmaiado: false,
+          tRevive: 0,
+        }))
+      : [];
+    ativo = Math.min(s.ativo || 0, Math.max(0, equipe.length - 1));
+    missaoAtual = Number.isInteger(s.missaoAtual) ? s.missaoAtual : 0;
+    contratoAtual = Number.isInteger(s.contratoAtual) ? s.contratoAtual : 0;
+    progressoContrato = Number.isInteger(s.progressoContrato) ? s.progressoContrato : 0;
+    if (s.mortes) Object.assign(mortes, s.mortes);
+    if (Array.isArray(s.baus)) s.baus.forEach((a, i) => { if (baus[i]) baus[i].aberto = !!a; });
+    if (Array.isArray(s.santuarios)) s.santuarios.forEach((dados, i) => {
+      if (!santuarios[i]) return;
+      if (typeof dados === 'boolean') {
+        santuarios[i].usado = dados;
+        santuarios[i].tRecarga = dados ? RECARGA_SANTUARIO : 0;
+        return;
+      }
+      santuarios[i].usado = !!dados.usado;
+      santuarios[i].tRecarga = Math.max(0, dados.tRecarga || 0);
+      if (santuarios[i].tRecarga <= 0) {
+        santuarios[i].usado = false;
+      }
+    });
+    if (mortes.ReiEsquelo > 0) {
+      monstros = monstros.filter(m => m.tipo !== 'ReiEsquelo');
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function apagarSave() {
+  saveBloqueado = true;
+  try {
+    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem('valdria_save_v1');
+  } catch {}
+}
+
+const temSave = carregarJogo();
+if (temSave) {
+  document.getElementById('btnComecar').textContent = '▶ CONTINUAR';
+  document.getElementById('btnNovo').style.display = 'inline-block';
+  document.getElementById('seletorClasse').style.display = 'none';
+  if (jogador.classe && CLASSES[jogador.classe]) {
+    const c = CLASSES[jogador.classe];
+    document.querySelector('#btnMagia').childNodes[0].nodeValue = c.habilidade;
+    document.querySelector('#btnMagia small').textContent = `${c.custo} mana`;
+  }
+}
+document.getElementById('btnNovo').addEventListener('click', () => {
+  apagarSave();
+  location.reload();
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') salvarJogo();
+});
+
+// ---------- LOOP PRINCIPAL ----------
+let tSave = 0;
+let ultimoT = performance.now();
+function loop(t) {
+  const dt = Math.min(100, t - ultimoT);
+  ultimoT = t;
+  relogio += dt;
+  jogador.cdMagia = Math.max(0, jogador.cdMagia - dt);
+  jogador.cdEspecial = Math.max(0, jogador.cdEspecial - dt);
+  if (jogador.escudoAtivo > 0) jogador.escudoAtivo = Math.max(0, jogador.escudoAtivo - dt);
+  if (jogador.esquivaAtiva > 0) jogador.esquivaAtiva = Math.max(0, jogador.esquivaAtiva - dt);
+
+  const dialogoAberto = document.getElementById('dialogo').classList.contains('aberto')
+                     || document.getElementById('loja').classList.contains('aberta');
+  if (!dialogoAberto) {
+    tickJogador(dt);
+    tickMonstros(dt);
+    tickSelvagens(dt);
+    tickCompanheiro(dt);
+    tickHabilidadesGuardiao(dt);
+    tickTelegrafos(dt);
+    tickAreasPerigo(dt);
+    tickProjeteis(dt);
+    tickBioma();
+  }
+
+  tSave += dt;
+  if (tSave > 5000) { tSave = 0; salvarJogo(); }
+
+  for (const s of santuarios) {
+    if (s.usado) {
+      s.tRecarga = Math.max(0, s.tRecarga - dt);
+      if (s.tRecarga <= 0) {
+        s.usado = false;
+        som('vinculo');
+        efeitos.push({ x: s.x, y: s.y, tipo: 'ritual', tempo: 600 });
+      }
+    }
+  }
+  efeitos.forEach(e => e.tempo -= dt);
+  efeitos = efeitos.filter(e => e.tempo > 0);
+  flutuantes.forEach(f => f.tempo -= dt);
+  flutuantes = flutuantes.filter(f => f.tempo > 0);
+  tickFeedbackImpacto(dt);
+
+  animar(jogador, dt, classeAtual().tempoMovimento || 190);
+  monstros.forEach(m => animar(m, dt, BESTIARIO[m.tipo].vel));
+  selvagens.forEach(g => animar(g, dt, 500));
+  equipe.forEach(c => animar(c, dt, 210));
+
+  desenhar();
+  desenharMinimapa();
+  atualizarUI();
+  atualizarDicaAcao();
+  atualizarPainelAlvo();
+  requestAnimationFrame(loop);
+}
+atualizarMissaoUI();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

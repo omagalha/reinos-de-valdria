@@ -1,0 +1,7 @@
+# Prompt da direção visual original
+
+A imagem \`public/assets/raw/concepts/valdria-visual-direction.png\` foi criada como referência, não como spritesheet final.
+
+## Prompt final utilizado
+
+Use case: stylized-concept. Asset type: original visual-direction concept sheet for a 2D medieval fantasy monster-taming RPG named Reinos de Valdria. Create a cohesive top-down pixel-art mood board with crisp hard-edged pixels and a restrained original palette, evoking classic handheld and early mobile RPG readability without imitating any named game or franchise. Composition: a central village shown as three clearly separated progression states (small camp with fire and tent; living village with houses, farm and smithy; fortified village with stone-and-wood walls, shrine and watchtower). Around it, show six distinct biome samples as small top-down tile vignettes: fertile green fields, whispering forest, sunny beach, shadow cave, luminous swamp, icy mountains. Include six wholly original small guardian creature concepts, separate from each other: leafy antler spirit, rounded water current spirit, ember-backed cave creature, shadow moth-like spirit, crystal-horn frost creature, tiny lantern-wing light spirit. Make all creatures visually original and non-humanoid. Layout should feel like a professional game art direction board with sprite-scale examples and small environmental clusters. No text, no letters, no logos, no UI, no watermark, no copyrighted characters, no Pokeballs, no recognizable franchise designs. Landscape 16:9, high resolution.

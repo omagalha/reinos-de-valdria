@@ -1,0 +1,54 @@
+{
+  "source": "legacy/reinos_de_valdria_v411_original.html",
+  "css": "public/styles/game.css",
+  "modules": [
+    {
+      "file": "public/game/01-world-map.js",
+      "bytes": 4872
+    },
+    {
+      "file": "public/game/02-entities-content.js",
+      "bytes": 11070
+    },
+    {
+      "file": "public/game/03-guardians.js",
+      "bytes": 5318
+    },
+    {
+      "file": "public/game/04-equipment.js",
+      "bytes": 5870
+    },
+    {
+      "file": "public/game/05-quests-contracts.js",
+      "bytes": 7586
+    },
+    {
+      "file": "public/game/06-gameplay-ai.js",
+      "bytes": 19951
+    },
+    {
+      "file": "public/game/07-interactions-shop.js",
+      "bytes": 10460
+    },
+    {
+      "file": "public/game/08-effects-audio.js",
+      "bytes": 5494
+    },
+    {
+      "file": "public/game/09-rendering.js",
+      "bytes": 15768
+    },
+    {
+      "file": "public/game/10-input-ui.js",
+      "bytes": 13360
+    },
+    {
+      "file": "public/game/11-save-load.js",
+      "bytes": 5180
+    },
+    {
+      "file": "public/game/12-main-loop.js",
+      "bytes": 1835
+    }
+  ]
+}
