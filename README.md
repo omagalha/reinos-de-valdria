@@ -1,0 +1,143 @@
+# Reinos de Valdria v4.13 — fundação de evolução
+
+Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
+
+Há duas entradas no mesmo projeto:
+
+- \`index.html\`: jogo completo atual em Canvas, preservado byte a byte;
+- \`modern.html\`: laboratório Phaser + TypeScript com mapa navegável e aldeia em três estágios.
+
+O laboratório ainda não substitui a aventura. Ele existe para que dados, save, assets e sistemas possam migrar um por vez sem quebrar movimento, combate, Guardiões ou progresso.
+
+![Direção visual original de Valdria](public/assets/raw/concepts/valdria-visual-direction.png)
+
+## Começar em casa
+
+O guia detalhado está em [PASSO_A_PASSO_EM_CASA.md](PASSO_A_PASSO_EM_CASA.md).
+
+### Jeito rápido — jogar a versão atual
+
+1. Extraia o ZIP.
+2. Abra a pasta no VS Code.
+3. Instale a extensão **Live Server**.
+4. Clique com o botão direito em \`index.html\`.
+5. Escolha **Open with Live Server**.
+
+Esse modo não precisa de Node.js, mas abre somente o jogo legado.
+
+### Jeito recomendado — projeto completo
+
+Instale o Node.js LTS 20.19 ou superior e depois dê dois cliques em \`INICIAR_JOGO.bat\`. Na primeira vez, o arquivo instala os pacotes e abre o jogo.
+
+Pelo terminal do VS Code:
+
+\`\`\`bash
+npm install
+npm run dev
+\`\`\`
+
+Use os endereços:
+
+- jogo atual: \`http://localhost:5173/\`;
+- laboratório v4.13: \`http://localhost:5173/modern.html\`.
+
+## O que entrou na v4.13
+
+- Phaser 3.90 em uma entrada separada, com \`BootScene\`, \`MenuScene\`, \`WorldScene\` e \`UIScene\`;
+- TypeScript estrito e build multi-página com Vite;
+- catálogos Zod para 6 biomas, 3 classes, 6 Guardiões, monstros, itens, missões e aldeias;
+- progressão jogável de Acampamento → Aldeia Viva → Aldeia Fortificada;
+- regras puras de dano, experiência, vínculo e transições de estado;
+- save v3 validado, armazenamento Dexie/IndexedDB e migração do \`localStorage\` v2;
+- Howler encapsulado em canais separados de música e efeitos;
+- PWA com manifest, cache de produção e ícone original provisório;
+- pipeline de assets 32 × 32, manifesto e registro de licenças;
+- prancha original de direção visual, mantida como conceito e não como spritesheet;
+- testes de paridade, smoke do jogo, dados, regras, aldeia e migração;
+- todos os 86 repositórios documentados com decisão individual.
+
+## Os 86 repositórios
+
+Eles estão todos contabilizados em:
+
+- [matriz de adoção dos 86 repositórios](docs/matriz-de-adocao-dos-86-repositorios.md);
+- [guia original recebido](docs/guia-original-86-repositorios.md).
+
+Sete tecnologias entram como dependências reais nesta etapa: Phaser, Zod, Vitest, Dexie, Vite, vite-plugin-pwa e Howler. Tiled é uma ferramenta externa planejada. Engines concorrentes, multiplayer, projetos arquivados e repositórios de estudo continuam documentados sem serem instalados desnecessariamente.
+
+## Estrutura principal
+
+\`\`\`text
+reinos-de-valdria-v4.13-foundation/
+├── index.html                    # aventura atual preservada
+├── modern.html                   # laboratório da arquitetura nova
+├── public/
+│   ├── game/                     # 12 módulos clássicos do jogo atual
+│   ├── styles/game.css
+│   ├── assets/                   # pipeline de arte e áudio
+│   └── icons/
+├── src/
+│   ├── main.ts
+│   ├── game/
+│   │   ├── assets/
+│   │   ├── audio/
+│   │   ├── data/
+│   │   ├── save/
+│   │   ├── scenes/
+│   │   └── systems/
+│   └── styles/
+├── tests/
+│   ├── game-smoke.test.js
+│   └── foundation/
+├── docs/
+├── scripts/
+└── legacy/                       # HTML original para recuperação
+\`\`\`
+
+Consulte [arquitetura-v4.13.md](docs/arquitetura-v4.13.md) antes de mover uma mecânica do legado.
+
+## Comandos
+
+\`\`\`bash
+# desenvolvimento
+npm run dev
+
+# paridade + smoke + testes da fundação
+npm test
+
+# TypeScript
+npm run typecheck
+
+# confirma os 86 links
+npm run verify:repos
+
+# confirma arquivos e licenças dos assets
+npm run verify:assets
+
+# todos os testes, verificações e build
+npm run check
+
+# build de produção em dist/
+npm run build
+npm run preview
+\`\`\`
+
+## Onde editar
+
+| Objetivo | Local |
+|---|---|
+| Corrigir a aventura atual | \`public/game/01-…12-*.js\` |
+| Criar bioma | \`src/game/data/biomes.ts\` |
+| Criar Guardião | \`src/game/data/guardians.ts\` |
+| Criar monstro ou drop | \`src/game/data/monsters.ts\` e \`items.ts\` |
+| Criar missão | \`src/game/data/quests.ts\` |
+| Alterar evolução de aldeia | \`src/game/data/villages.ts\` e \`systems/village.ts\` |
+| Alterar o novo save | \`src/game/save/\` |
+| Adicionar asset | \`public/assets/\`, \`manifest.json\` e \`ASSET_LICENSES.md\` |
+| Migrar renderização | \`src/game/scenes/\` |
+
+## Garantia de segurança
+
+\`npm run test:parity\` reconstrói o JavaScript original e confirma que HTML, CSS e os 12 módulos do jogo continuam iguais à versão enviada. O save novo não apaga o antigo: a migração lê o formato v2, valida o resultado e grava em IndexedDB quando o novo cliente assumir essa responsabilidade.
+
+O próximo corte recomendado está em [roteiro-de-migracao.md](docs/roteiro-de-migracao.md).
