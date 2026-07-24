@@ -3,10 +3,7 @@ import { BootScene } from './scenes/BootScene';
 import { MenuScene } from './scenes/MenuScene';
 import { UIScene } from './scenes/UIScene';
 import { WorldScene } from './scenes/WorldScene';
-
-export const GAME_WIDTH = 960;
-export const GAME_HEIGHT = 576;
-export const TILE_SIZE = 32;
+import { GAME_HEIGHT, GAME_WIDTH } from './dimensions';
 
 export function createGameConfig(): Phaser.Types.Core.GameConfig {
   return {

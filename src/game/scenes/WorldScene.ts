@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH, TILE_SIZE } from '../config';
+import { GAME_HEIGHT, GAME_WIDTH, TILE_SIZE } from '../dimensions';
 import { moveWithCollision, normalizedDirection, type Point2D } from '../systems/movement';
 import { findGridPath, type GridPoint } from '../systems/pathfinding';
 import { nearestInRange } from '../systems/interactions';

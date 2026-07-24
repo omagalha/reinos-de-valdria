@@ -1,7 +1,7 @@
 {
-  "name": "reinos-de-valdria-v4-16",
+  "name": "reinos-de-valdria-v4-17",
   "private": true,
-  "version": "4.16.0",
+  "version": "4.17.0",
   "type": "module",
   "description": "Jogo legado preservado e fundação TypeScript/Phaser para a evolução segura de Reinos de Valdria.",
   "scripts": {
@@ -20,6 +20,8 @@
     "test:parity": "node scripts/verify-parity.mjs",
     "test:smoke": "vitest run tests/game-smoke.test.js",
     "test:foundation": "vitest run tests/foundation",
+    "test:e2e": "playwright test",
+    "check:full": "npm run check && npm run test:e2e",
     "typecheck": "tsc --noEmit",
     "verify:repos": "node scripts/verify-repositories.mjs",
     "verify:assets": "node scripts/verify-assets.mjs",
@@ -36,6 +38,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/howler": "^2.2.13",
     "jsdom": "^29.1.1",
     "typescript": "^5.9.3",

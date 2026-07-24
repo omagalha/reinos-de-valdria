@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.17.0 — Exploração validada em navegador
+
+- adiciona Playwright e Chromium para testes E2E;
+- valida boot, câmera, minimapa, teclado, diagonal, toque e viewport mobile;
+- corrige ciclo de imports que impedia o Phaser de iniciar no navegador real;
+- separa dimensões do jogo em módulo neutro;
+- adiciona \`test:e2e\` e \`check:full\`;
+- mantém o diagnóstico fora da build de produção.
+
 ## 4.16.0 — Paridade inicial de exploração
 
 - adiciona pathfinding A* em oito direções para toque;

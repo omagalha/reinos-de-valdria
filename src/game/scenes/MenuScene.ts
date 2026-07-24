@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { GAME_HEIGHT, GAME_WIDTH } from '../dimensions';
 
 interface MenuData {
   error?: string;
@@ -31,7 +31,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 140, 'EXPLORAÇÃO DOS CAMPOS • v4.16', {
+      .text(GAME_WIDTH / 2, 140, 'EXPLORAÇÃO VALIDADA • v4.17', {
         color: '#a9c7ad',
         fontFamily: 'Arial, sans-serif',
         fontSize: '15px',

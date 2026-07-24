@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.16 — paridade inicial de exploração
+# Reinos de Valdria v4.17 — exploração validada em navegador
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,19 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- exploração Phaser v4.16: \`http://localhost:5173/modern.html\`.
+- exploração Phaser v4.17: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.16
+## O que entrou na v4.17
+
+- Playwright e Chromium para testes reais do Phaser;
+- cenários desktop e mobile horizontal;
+- testes de abertura sem erros, câmera, minimapa, teclado diagonal e toque com A*;
+- validação de que o Canvas cabe no viewport mobile;
+- correção do ciclo de imports entre configuração e cenas;
+- dimensões movidas para \`src/game/dimensions.ts\`;
+- acesso de diagnóstico disponível somente no servidor de desenvolvimento.
+
+Mantidos da v4.16:
 
 - caminho A* em oito direções para toque, contornando água e obstáculos;
 - diagonais do A* impedidas entre duas quinas bloqueadas;
@@ -150,6 +160,12 @@ npm run verify:map
 # todos os testes, verificações e build
 npm run check
 
+# primeira instalação do navegador de testes
+npx playwright install chromium
+
+# check normal + testes reais desktop/mobile
+npm run check:full
+
 # build de produção em dist/
 npm run build
 npm run preview
@@ -172,4 +188,4 @@ npm run preview
 
 \`npm run test:parity\` confirma que o HTML e o CSS permanecem iguais, que o original arquivado não mudou e que a ponte é carregada antes dos 12 módulos. Os testes da fundação comparam os números gerados aos catálogos. O save novo não apaga o antigo: a migração lê o formato v2, valida o resultado e grava em IndexedDB quando o novo cliente assumir essa responsabilidade.
 
-Detalhes estão em [exploracao-v4.16.md](docs/exploracao-v4.16.md) e [mapa-campos-de-valdria-v4.15.md](docs/mapa-campos-de-valdria-v4.15.md). O próximo corte recomendado está em [roteiro-de-migracao.md](docs/roteiro-de-migracao.md).
+Detalhes estão em [testes-de-exploracao-v4.17.md](docs/testes-de-exploracao-v4.17.md), [exploracao-v4.16.md](docs/exploracao-v4.16.md) e [mapa-campos-de-valdria-v4.15.md](docs/mapa-campos-de-valdria-v4.15.md).
