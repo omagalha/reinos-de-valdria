@@ -1,11 +1,11 @@
-# Reinos de Valdria v4.14 — ponte de dados
+# Reinos de Valdria v4.15 — Campos de Valdria no Phaser
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
 Há duas entradas no mesmo projeto:
 
 - \`index.html\`: jogo atual em Canvas, com renderização e comportamento preservados;
-- \`modern.html\`: laboratório Phaser + TypeScript com mapa navegável e aldeia em três estágios.
+- \`modern.html\`: primeira área Phaser realmente explorável, carregada de um mapa TMJ.
 
 O laboratório ainda não substitui a aventura. Ele existe para que dados, save, assets e sistemas possam migrar um por vez sem quebrar movimento, combate, Guardiões ou progresso.
 
@@ -39,9 +39,20 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- laboratório v4.14: \`http://localhost:5173/modern.html\`.
+- Campos de Valdria v4.15: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.14
+## O que entrou na v4.15
+
+- mapa TMJ de Campos de Valdria com 48 × 32 tiles de 32 px;
+- tile layers \`ground\`, \`roads\`, \`water\`, \`obstacles\`, \`decoration\` e \`collision\`;
+- object layers para jogador, NPCs, monstros, Guardiões, baús, santuários, portais, aldeia e bioma;
+- tileset vetorial original e provisório, compatível com Tiled;
+- movimento por WASD/setas, diagonal normalizada, bloqueio de quinas e colisão;
+- câmera acompanhando o jogador, toque para mover e controle virtual mobile;
+- validação automática do TMJ e dos IDs contra \`catalogs.json\`;
+- 6 testes para dimensões, layers, spawn, colisão, IDs e movimento.
+
+Mantidos da v4.14:
 
 - fonte única em \`src/game/data/catalogs.json\` para classes, biomas, Guardiões, itens e monstros;
 - ponte gerada em \`public/game/00-content-bridge.js\` para o JavaScript clássico;
@@ -77,7 +88,7 @@ Sete tecnologias entram como dependências reais nesta etapa: Phaser, Zod, Vites
 ## Estrutura principal
 
 \`\`\`text
-reinos-de-valdria-v4.13-foundation/
+reinos-de-valdria/
 ├── index.html                    # aventura atual preservada
 ├── modern.html                   # laboratório da arquitetura nova
 ├── public/
@@ -91,6 +102,7 @@ reinos-de-valdria-v4.13-foundation/
 │   │   ├── assets/
 │   │   ├── audio/
 │   │   ├── data/                 # catalogs.json é a fonte canônica
+│   │   ├── maps/                 # validação do mapa TMJ
 │   │   ├── save/
 │   │   ├── scenes/
 │   │   └── systems/
@@ -123,6 +135,9 @@ npm run verify:repos
 # confirma arquivos e licenças dos assets
 npm run verify:assets
 
+# confirma estrutura, colisão e IDs do mapa TMJ
+npm run verify:map
+
 # todos os testes, verificações e build
 npm run check
 
@@ -137,6 +152,7 @@ npm run preview
 |---|---|
 | Corrigir a aventura atual | \`public/game/01-…12-*.js\` |
 | Alterar classe, bioma, Guardião, item ou monstro | \`src/game/data/catalogs.json\` |
+| Alterar o primeiro mapa | \`scripts/generate-fields-map.mjs\` e depois \`npm run generate:map\` |
 | Criar missão | \`src/game/data/quests.ts\` |
 | Alterar evolução de aldeia | \`src/game/data/villages.ts\` e \`systems/village.ts\` |
 | Alterar o novo save | \`src/game/save/\` |
@@ -147,4 +163,4 @@ npm run preview
 
 \`npm run test:parity\` confirma que o HTML e o CSS permanecem iguais, que o original arquivado não mudou e que a ponte é carregada antes dos 12 módulos. Os testes da fundação comparam os números gerados aos catálogos. O save novo não apaga o antigo: a migração lê o formato v2, valida o resultado e grava em IndexedDB quando o novo cliente assumir essa responsabilidade.
 
-O próximo corte recomendado está em [roteiro-de-migracao.md](docs/roteiro-de-migracao.md).
+Detalhes da área estão em [mapa-campos-de-valdria-v4.15.md](docs/mapa-campos-de-valdria-v4.15.md). O próximo corte recomendado está em [roteiro-de-migracao.md](docs/roteiro-de-migracao.md).

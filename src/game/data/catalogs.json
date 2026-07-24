@@ -1,5 +1,5 @@
 {
-  "version": "4.14.0",
+  "version": "4.15.0",
   "classes": [
     {
       "id": "cavaleiro",
@@ -36,6 +36,20 @@
       "skill": { "name": "Flama", "manaCost": 20, "cooldownMs": 2200 },
       "special": "Barreira",
       "legacy": { "skillRange": 4, "attackIntervalMs": 1010, "movementIntervalMs": 190 }
+    }
+  ],
+  "npcs": [
+    {
+      "id": "anciao-baldric",
+      "name": "Ancião Baldric",
+      "role": "mentor",
+      "nativeBiome": "campos-de-valdria"
+    },
+    {
+      "id": "ferreira-mira",
+      "name": "Ferreira Mira",
+      "role": "ferreira",
+      "nativeBiome": "campos-de-valdria"
     }
   ],
   "biomes": [

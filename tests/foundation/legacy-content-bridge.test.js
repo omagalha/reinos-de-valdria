@@ -44,7 +44,7 @@ globalThis.__content = {
 describe('ponte entre catálogos TypeScript e jogo Canvas', () => {
   test('preserva atributos, alcance, mana e cooldown das classes', () => {
     const bridge = readBridge();
-    expect(bridge.version).toBe('4.14.0');
+    expect(bridge.version).toBe(catalogs.version);
 
     for (const entry of catalogs.classes) {
       expect(bridge.classes[entry.id]).toMatchObject({

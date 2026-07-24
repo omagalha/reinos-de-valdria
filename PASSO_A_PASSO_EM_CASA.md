@@ -15,7 +15,7 @@ Não abra nem edite os arquivos diretamente dentro do ZIP.
 
 - [Visual Studio Code](https://code.visualstudio.com/).
 
-### Recomendado para a v4.14 completa
+### Recomendado para a v4.15 completa
 
 - [Node.js LTS](https://nodejs.org/) versão 20.19 ou superior.
 
@@ -25,7 +25,7 @@ O VS Code edita o projeto; o Node instala Phaser, TypeScript e as ferramentas de
 
 1. Abra o VS Code.
 2. Vá em **Arquivo → Abrir Pasta**.
-3. Selecione a pasta \`reinos-de-valdria-v4.13-foundation\`.
+3. Selecione a pasta local do projeto \`reinos-de-valdria\`.
 4. Confirme que \`package.json\`, \`index.html\`, \`modern.html\`, \`public\` e \`src\` aparecem na lateral.
 5. Se o VS Code perguntar se você confia nos autores da pasta, confirme apenas se o ZIP veio deste chat e não foi alterado por terceiros.
 
@@ -34,7 +34,7 @@ O VS Code edita o projeto; o Node instala Phaser, TypeScript e as ferramentas de
 ### Opção mais simples no Windows
 
 1. Feche apenas o terminal antigo, se houver.
-2. Dê dois cliques em \`INICIAR_JOGO.bat\` para a aventura atual ou em \`INICIAR_LAB_V413.bat\` para abrir direto na fundação Phaser.
+2. Dê dois cliques em \`INICIAR_JOGO.bat\` para a aventura atual ou em \`INICIAR_LAB_V415.bat\` para abrir direto em Campos de Valdria no Phaser.
 3. Na primeira execução, espere a instalação dos pacotes terminar.
 4. O navegador abrirá automaticamente.
 5. Deixe a janela preta do terminal aberta enquanto estiver jogando ou editando.
@@ -53,9 +53,9 @@ Clique no endereço exibido no terminal, normalmente \`http://localhost:5173/\`.
 ## 5. Abrir cada versão
 
 - aventura completa atual: \`http://localhost:5173/\`;
-- fundação Phaser v4.14: \`http://localhost:5173/modern.html\`.
+- Campos de Valdria no Phaser v4.15: \`http://localhost:5173/modern.html\`.
 
-No laboratório, use WASD/setas ou toque para mover. As teclas 1, 2 e 3 alternam os estágios da aldeia.
+No Phaser, use WASD/setas, toque no destino ou arraste o controle virtual para mover.
 
 ## 6. Fazer sua primeira alteração segura
 

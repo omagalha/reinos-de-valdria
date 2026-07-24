@@ -31,7 +31,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 140, 'LABORATÓRIO DA FUNDAÇÃO v4.14', {
+      .text(GAME_WIDTH / 2, 140, 'CAMPOS DE VALDRIA • v4.15', {
         color: '#a9c7ad',
         fontFamily: 'Arial, sans-serif',
         fontSize: '15px',
@@ -41,7 +41,7 @@ export class MenuScene extends Phaser.Scene {
 
     const description = this.error
       ? 'Há dados inválidos e o laboratório não pode iniciar.\n' + this.error
-      : 'Arquitetura paralela em Phaser + TypeScript\nDados externos • aldeias • save versionado • assets rastreáveis';
+      : 'Primeira área explorável em Phaser + TypeScript\nMapa TMJ • colisão • câmera • teclado e toque';
 
     this.add
       .text(GAME_WIDTH / 2, 235, description, {
@@ -62,7 +62,7 @@ export class MenuScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     const label = this.add
-      .text(GAME_WIDTH / 2, 355, 'EXPLORAR A FUNDAÇÃO', {
+      .text(GAME_WIDTH / 2, 355, 'EXPLORAR CAMPOS DE VALDRIA', {
         color: '#172017',
         fontFamily: 'Arial, sans-serif',
         fontSize: '18px',

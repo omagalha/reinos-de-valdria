@@ -12,7 +12,7 @@ export class UIScene extends Phaser.Scene {
   create(): void {
     this.add.rectangle(GAME_WIDTH / 2, 34, GAME_WIDTH, 68, 0x07100c, 0.92).setScrollFactor(0);
     this.add
-      .text(18, 13, 'FUNDAÇÃO JOGÁVEL', {
+      .text(18, 13, 'CAMPOS DE VALDRIA', {
         color: '#f0c96a',
         fontFamily: 'Arial, sans-serif',
         fontSize: '17px',
@@ -20,7 +20,7 @@ export class UIScene extends Phaser.Scene {
       })
       .setScrollFactor(0);
     this.add
-      .text(18, 38, 'WASD/setas ou toque para mover • 1/2/3 evolui a aldeia • ESC volta', {
+      .text(18, 38, 'WASD/setas, toque ou controle virtual • ESC volta', {
         color: '#a6b8aa',
         fontFamily: 'Arial, sans-serif',
         fontSize: '13px',

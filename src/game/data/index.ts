@@ -4,6 +4,7 @@ import { characterClasses } from './classes';
 import { guardians } from './guardians';
 import { items } from './items';
 import { monsters } from './monsters';
+import { npcs } from './npcs';
 import { quests } from './quests';
 import {
   BiomeSchema,
@@ -11,6 +12,7 @@ import {
   GuardianSchema,
   ItemSchema,
   MonsterSchema,
+  NpcSchema,
   QuestSchema,
   VillageStageSchema,
 } from './schemas';
@@ -21,6 +23,7 @@ export * from './classes';
 export * from './guardians';
 export * from './items';
 export * from './monsters';
+export * from './npcs';
 export * from './quests';
 export * from './schemas';
 export * from './villages';
@@ -31,6 +34,7 @@ export const gameContent = {
   guardians,
   items,
   monsters,
+  npcs,
   quests,
   villageStages,
 } as const;
@@ -41,6 +45,7 @@ const ContentSchema = z.object({
   guardians: z.array(GuardianSchema),
   items: z.array(ItemSchema),
   monsters: z.array(MonsterSchema),
+  npcs: z.array(NpcSchema),
   quests: z.array(QuestSchema),
   villageStages: z.array(VillageStageSchema),
 });

@@ -43,6 +43,13 @@ export const CharacterClassSchema = z.object({
   special: z.string().min(2),
 });
 
+export const NpcSchema = z.object({
+  id: SlugSchema,
+  name: z.string().min(3),
+  role: SlugSchema,
+  nativeBiome: SlugSchema,
+});
+
 export const GuardianSkillSchema = z.object({
   id: SlugSchema,
   name: z.string().min(2),
@@ -132,6 +139,7 @@ export const VillageStageSchema = z.object({
 
 export type Biome = z.infer<typeof BiomeSchema>;
 export type CharacterClass = z.infer<typeof CharacterClassSchema>;
+export type Npc = z.infer<typeof NpcSchema>;
 export type Guardian = z.infer<typeof GuardianSchema>;
 export type Monster = z.infer<typeof MonsterSchema>;
 export type Item = z.infer<typeof ItemSchema>;

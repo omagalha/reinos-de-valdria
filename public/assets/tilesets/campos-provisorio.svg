@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="32" viewBox="0 0 256 32" shape-rendering="crispEdges">
+  <!-- Tiles originais provisórios de Valdria: grama, estrada, água, árvore, flores, colisão, praça e pedra. -->
+  <rect width="32" height="32" fill="#568c46"/>
+  <path d="M3 8h3v3H3zm18 11h4v3h-4zM11 27h2v2h-2z" fill="#76ad58"/>
+  <rect x="32" width="32" height="32" fill="#a98b55"/>
+  <path d="M32 4h32v3H32zm0 21h32v2H32z" fill="#c4a66b" opacity=".65"/>
+  <rect x="64" width="32" height="32" fill="#397fa1"/>
+  <path d="M64 7c7-4 13 4 20 0s8 0 12 1v4c-6 2-11-3-18 0s-10 0-14-1zm0 14c7-4 13 4 20 0s8 0 12 1v4c-6 2-11-3-18 0s-10 0-14-1z" fill="#65b5c4"/>
+  <rect x="96" width="32" height="32" fill="#568c46"/>
+  <rect x="109" y="18" width="7" height="12" fill="#60442d"/>
+  <path d="M112 2 99 20h26zm0 6-10 16h20z" fill="#285b39"/>
+  <rect x="128" width="32" height="32" fill="#568c46"/>
+  <path d="m138 17 3-4 3 4-3 4zm12-8 3-3 3 3-3 3zm-18 0 2-3 3 3-3 3z" fill="#e6cf69"/>
+  <rect x="160" width="32" height="32" fill="#be3f45" opacity=".28"/>
+  <path d="m163 3 26 26m0-26-26 26" stroke="#7c2029" stroke-width="3"/>
+  <rect x="192" width="32" height="32" fill="#8b7754"/>
+  <path d="M192 0h32v3h-32zm0 15h32v3h-32zM207 0v15m-8 3v14m18-14v14" stroke="#b19a6e" stroke-width="2"/>
+  <rect x="224" width="32" height="32" fill="#568c46"/>
+  <path d="m229 24 5-13 8-5 9 10-3 10h-16z" fill="#6e7370"/>
+  <path d="m234 12 7-4 4 4-7 2z" fill="#9ba09a"/>
+</svg>

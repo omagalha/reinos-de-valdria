@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const AssetEntrySchema = z.object({
   id: z.string().min(2),
-  type: z.enum(['concept', 'sprite', 'tileset', 'audio', 'ui', 'font']),
+  type: z.enum(['concept', 'sprite', 'tileset', 'map', 'audio', 'ui', 'font']),
   path: z.string().min(3),
   license: z.enum(['proprietary-original', 'generated-original', 'third-party']),
   status: z.enum(['reference-only', 'prototype', 'production']),

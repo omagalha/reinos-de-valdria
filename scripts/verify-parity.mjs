@@ -70,6 +70,6 @@ for (const { file } of manifest.modules) {
   previousPosition = position;
 }
 
-console.log('Paridade confirmada: HTML/CSS preservados e catálogos legados servidos pela ponte v4.14.');
+console.log('Paridade confirmada: HTML/CSS preservados e catálogos legados servidos pela ponte de dados.');
 console.log(`JavaScript original: ${hash(originalJavascript)}`);
 console.log(`${manifest.modules.length} arquivos carregados na ordem correta (1 ponte + 12 módulos).`);

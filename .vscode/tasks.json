@@ -26,7 +26,7 @@
       }
     },
     {
-      "label": "Valdria: iniciar laboratório v4.13",
+      "label": "Valdria: iniciar Campos v4.15",
       "type": "npm",
       "script": "dev:lab",
       "isBackground": true,

@@ -6,6 +6,11 @@ export class BootScene extends Phaser.Scene {
     super('BootScene');
   }
 
+  preload(): void {
+    this.load.tilemapTiledJSON('campos-de-valdria', './assets/maps/campos-de-valdria.tmj');
+    this.load.image('campos-tiles', './assets/tilesets/campos-provisorio.svg');
+  }
+
   create(): void {
     const validation = validateGameContent();
 

@@ -1,19 +1,21 @@
 {
-  "name": "reinos-de-valdria-v4-13-foundation",
+  "name": "reinos-de-valdria-v4-15",
   "private": true,
-  "version": "4.14.0",
+  "version": "4.15.0",
   "type": "module",
   "description": "Jogo legado preservado e fundação TypeScript/Phaser para a evolução segura de Reinos de Valdria.",
   "scripts": {
+    "generate": "npm run generate:legacy && npm run generate:map",
     "generate:legacy": "node scripts/generate-legacy-content.mjs",
-    "predev": "npm run generate:legacy",
+    "generate:map": "node scripts/generate-fields-map.mjs",
+    "predev": "npm run generate",
     "dev": "vite --host 0.0.0.0",
-    "predev:lab": "npm run generate:legacy",
+    "predev:lab": "npm run generate",
     "dev:lab": "vite --host 0.0.0.0 --open /modern.html",
-    "prebuild": "npm run generate:legacy",
+    "prebuild": "npm run generate",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "pretest": "npm run generate:legacy",
+    "pretest": "npm run generate",
     "test": "npm run test:parity && npm run test:smoke && npm run test:foundation",
     "test:parity": "node scripts/verify-parity.mjs",
     "test:smoke": "vitest run tests/game-smoke.test.js",
@@ -21,7 +23,8 @@
     "typecheck": "tsc --noEmit",
     "verify:repos": "node scripts/verify-repositories.mjs",
     "verify:assets": "node scripts/verify-assets.mjs",
-    "check": "npm test && npm run typecheck && npm run verify:repos && npm run verify:assets && npm run build"
+    "verify:map": "node scripts/verify-fields-map.mjs",
+    "check": "npm test && npm run typecheck && npm run verify:repos && npm run verify:assets && npm run verify:map && npm run build"
   },
   "engines": {
     "node": ">=20.19.0"

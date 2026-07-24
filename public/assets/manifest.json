@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "tileSize": 32,
   "entries": [
     {
@@ -17,6 +17,30 @@
       "license": "proprietary-original",
       "status": "prototype",
       "attribution": "Símbolo vetorial original criado para Reinos de Valdria."
+    },
+    {
+      "id": "campos-de-valdria-map",
+      "type": "map",
+      "path": "assets/maps/campos-de-valdria.tmj",
+      "license": "proprietary-original",
+      "status": "prototype",
+      "attribution": "Mapa TMJ original criado para a exploração Phaser da v4.15."
+    },
+    {
+      "id": "campos-provisorio-tileset",
+      "type": "tileset",
+      "path": "assets/tilesets/campos-provisorio.svg",
+      "license": "proprietary-original",
+      "status": "prototype",
+      "attribution": "Tiles vetoriais provisórios originais criados para Campos de Valdria."
+    },
+    {
+      "id": "campos-provisorio-tileset-definition",
+      "type": "tileset",
+      "path": "assets/tilesets/campos-provisorio.tsj",
+      "license": "proprietary-original",
+      "status": "prototype",
+      "attribution": "Definição Tiled original do tileset provisório de Campos de Valdria."
     }
   ]
 }

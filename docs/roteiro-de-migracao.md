@@ -1,6 +1,6 @@
 # Roteiro de migração
 
-## Marco atual — v4.14
+## Marco atual — v4.15
 
 - aventura atual preservada;
 - fundação Phaser/TypeScript compilando;
@@ -12,6 +12,8 @@
 - classes, biomas, Guardiões, itens e monstros em uma fonte canônica;
 - adaptador gerado para o cliente Canvas;
 - paridade numérica coberta por testes.
+- primeiro mapa TMJ de Campos de Valdria carregado no Phaser;
+- exploração por teclado, toque e controle virtual com colisão e câmera.
 
 ## Etapa 1 — adaptadores entre legado e dados — concluída na v4.14
 
@@ -22,7 +24,7 @@
 
 Concluída: os atributos ficam em \`src/game/data/catalogs.json\`; \`public/game/00-content-bridge.js\` é gerado e não deve ser editado manualmente. Consulte [dados-migrados-v4.14.md](dados-migrados-v4.14.md).
 
-## Etapa 2 — primeiro mapa Tiled
+## Etapa 2 — primeiro mapa Tiled — concluída na v4.15
 
 1. produzir tileset 32 × 32 de Campos de Valdria;
 2. desenhar aldeia e arredores em camadas;
@@ -30,11 +32,11 @@ Concluída: os atributos ficam em \`src/game/data/catalogs.json\`; \`public/game
 4. validar TMJ/JSON;
 5. carregar o mesmo mapa no laboratório Phaser.
 
-Concluída quando o personagem pode circular no mapa com colisão e câmera mobile.
+Concluída: o mapa possui tiles e object layers validados, e o personagem circula com colisão e câmera mobile. Consulte [mapa-campos-de-valdria-v4.15.md](mapa-campos-de-valdria-v4.15.md).
 
-## Etapa 3 — paridade de exploração
+## Etapa 3 — paridade de exploração — iniciada
 
-Migrar movimento, colisão diagonal, toque para mover, A*, câmera, minimapa e interação. Adicionar Playwright para teclado e viewport de celular.
+Movimento, colisão diagonal, toque e câmera entraram na v4.15. Ainda faltam A*, minimapa, interações completas e Playwright para teclado e viewport de celular.
 
 Concluída quando os fluxos atuais passam tanto no cliente legado quanto no Phaser.
 
