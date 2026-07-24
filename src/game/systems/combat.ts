@@ -14,6 +14,12 @@ export function applyDamage(target: HealthState, damage: number): HealthState {
 
 export const isDefeated = ({ hp }: HealthState): boolean => hp <= 0;
 
+export const isTargetInRange = (
+  distancePixels: number,
+  rangeTiles: number,
+  tileSize: number,
+): boolean => distancePixels <= rangeTiles * tileSize * 1.25;
+
 export function experienceForLevel(level: number): number {
   return Math.round((50 / 3) * (level ** 3 - 6 * level ** 2 + 17 * level - 12));
 }

@@ -15,7 +15,7 @@ Não abra nem edite os arquivos diretamente dentro do ZIP.
 
 - [Visual Studio Code](https://code.visualstudio.com/).
 
-### Recomendado para a v4.18 completa
+### Recomendado para a v4.19 completa
 
 - [Node.js LTS](https://nodejs.org/) versão 20.19 ou superior.
 
@@ -34,7 +34,7 @@ O VS Code edita o projeto; o Node instala Phaser, TypeScript e as ferramentas de
 ### Opção mais simples no Windows
 
 1. Feche apenas o terminal antigo, se houver.
-2. Dê dois cliques em \`INICIAR_JOGO.bat\` para a aventura atual ou em \`INICIAR_LAB_V418.bat\` para abrir o combate Phaser.
+2. Dê dois cliques em \`INICIAR_JOGO.bat\` para a aventura atual ou em \`INICIAR_LAB_V419.bat\` para abrir o combate Phaser.
 3. Na primeira execução, espere a instalação dos pacotes terminar.
 4. O navegador abrirá automaticamente.
 5. Deixe a janela preta do terminal aberta enquanto estiver jogando ou editando.
@@ -53,9 +53,9 @@ Clique no endereço exibido no terminal, normalmente \`http://localhost:5173/\`.
 ## 5. Abrir cada versão
 
 - aventura completa atual: \`http://localhost:5173/\`;
-- combate básico Phaser v4.18: \`http://localhost:5173/modern.html\`.
+- classes e combate Phaser v4.19: \`http://localhost:5173/modern.html\`.
 
-No Phaser, use WASD/setas, toque no destino ou arraste o controle virtual. Use \`E\`, espaço ou \`AÇÃO\` perto de um marcador.
+No Phaser, escolha uma classe, use WASD/setas, toque no destino ou arraste o controle virtual. Selecione um Ratino e use \`F\` ou \`ATACAR\`. Use \`E\`, espaço ou \`AÇÃO\` perto de um marcador.
 
 ## 6. Fazer sua primeira alteração segura
 

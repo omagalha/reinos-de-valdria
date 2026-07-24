@@ -1,18 +1,54 @@
 import catalogs from './catalogs.json';
 
-const knight = catalogs.classes.find(({ id }) => id === 'cavaleiro');
 const fieldRat = catalogs.monsters.find(({ id }) => id === 'ratino-do-campo');
 
-if (!knight || !fieldRat?.legacy) throw new Error('Catálogos de combate inicial incompletos.');
+if (catalogs.classes.length !== 3 || !fieldRat?.legacy) {
+  throw new Error('Catálogos de combate inicial incompletos.');
+}
+
+export type PlayerClassId = 'cavaleiro' | 'arqueiro' | 'mago';
+
+export interface PlayerCombatData {
+  classId: PlayerClassId;
+  name: string;
+  maxHp: number;
+  maxMp: number;
+  damage: [number, number];
+  rangeTiles: number;
+  attackCooldownMs: number;
+  projectileColor: number | null;
+}
+
+const projectileColors: Record<PlayerClassId, number | null> = {
+  cavaleiro: null,
+  arqueiro: 0xe8c46a,
+  mago: 0x79c9ff,
+};
+
+export const playerClasses = Object.fromEntries(
+  catalogs.classes.map((playerClass) => [
+    playerClass.id,
+    {
+      classId: playerClass.id as PlayerClassId,
+      name: playerClass.name,
+      maxHp: playerClass.maxHp,
+      maxMp: playerClass.maxMp,
+      damage: playerClass.baseDamage as [number, number],
+      rangeTiles: playerClass.attackRange,
+      attackCooldownMs: playerClass.legacy.attackIntervalMs,
+      projectileColor: projectileColors[playerClass.id as PlayerClassId],
+    },
+  ]),
+) as Record<PlayerClassId, PlayerCombatData>;
+
+export const DEFAULT_PLAYER_CLASS: PlayerClassId = 'cavaleiro';
+
+export function getPlayerCombatData(classId: string | undefined): PlayerCombatData {
+  return playerClasses[classId as PlayerClassId] ?? playerClasses.cavaleiro;
+}
 
 export const initialCombatData = {
-  player: {
-    classId: knight.id,
-    maxHp: knight.maxHp,
-    damage: knight.baseDamage as [number, number],
-    rangeTiles: knight.attackRange,
-    attackCooldownMs: knight.legacy.attackIntervalMs,
-  },
+  player: playerClasses[DEFAULT_PLAYER_CLASS],
   fieldRat: {
     monsterId: fieldRat.id,
     name: fieldRat.name,

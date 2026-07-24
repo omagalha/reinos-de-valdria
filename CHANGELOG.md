@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.19.0 — Classes e ataques à distância
+
+- adiciona seleção de Cavaleiro, Arqueiro e Mago no menu Phaser;
+- aplica HP, dano, alcance e intervalo próprios de cada classe;
+- adiciona projéteis provisórios para Arqueiro e Mago;
+- diferencia visualmente as três classes;
+- testa seleção segura e alcance de ataques;
+- mantém combate e progresso somente na sessão.
+
 ## 4.18.0 — Combate básico Phaser
 
 - adiciona Ratinos nos spawns do mapa;

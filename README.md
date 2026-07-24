@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.18 — combate básico no Phaser
+# Reinos de Valdria v4.19 — classes e ataques à distância
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,13 +39,23 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- combate básico Phaser v4.18: \`http://localhost:5173/modern.html\`.
+- classes e combate Phaser v4.19: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.18
+## O que entrou na v4.19
+
+- seleção de Cavaleiro, Arqueiro ou Mago antes da exploração;
+- HP, dano, alcance e intervalo próprios vindos de \`catalogs.json\`;
+- ataque corpo a corpo para Cavaleiro;
+- projéteis provisórios para Arqueiro e Mago;
+- aparência provisória diferente para cada classe;
+- testes das três configurações e dos limites de alcance;
+- documentação em [classes-e-ataques-v4.19.md](docs/classes-e-ataques-v4.19.md).
+
+Mantidos da v4.18:
 
 - Ratinos instanciados a partir de \`monster_spawns\` do TMJ;
 - seleção de alvo por toque/clique;
-- ataque do Cavaleiro com \`F\` ou botão \`ATACAR\`;
+- ataque com \`F\` ou botão \`ATACAR\`;
 - HP, dano, alcance, cooldown, visão, movimento, XP e drops vindos de \`catalogs.json\`;
 - IA simples de detecção, aproximação e ataque;
 - desmaio e retorno ao acampamento sem alterar o save;

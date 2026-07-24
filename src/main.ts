@@ -12,7 +12,7 @@ if (status) {
 }
 
 if (!validation.success) {
-  throw new Error('Os dados da fundação v4.18 são inválidos: ' + validation.errors.join('; '));
+  throw new Error('Os dados da fundação v4.19 são inválidos: ' + validation.errors.join('; '));
 }
 
 const game = new Phaser.Game(createGameConfig());
@@ -28,6 +28,10 @@ if (import.meta.env.DEV) {
       minimapReady: Boolean(game.registry.get('minimap-data')),
       interactionPrompt: (game.registry.get('interaction-prompt') as string | undefined) ?? '',
       interactionMessage: (game.registry.get('interaction-message') as string | undefined) ?? '',
+      selectedPlayerClass: (game.registry.get('selected-player-class') as string | undefined) ?? '',
+      combatState: game.registry.get('combat-state') as
+        | { classId: string; hp: number; maxHp: number; target: { hp: number } | null }
+        | undefined,
     }),
   };
 }
@@ -42,6 +46,8 @@ declare global {
         minimapReady: boolean;
         interactionPrompt: string;
         interactionMessage: string;
+        selectedPlayerClass: string;
+        combatState?: { classId: string; hp: number; maxHp: number; target: { hp: number } | null };
       };
     };
   }

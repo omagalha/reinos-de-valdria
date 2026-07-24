@@ -87,6 +87,8 @@ export class UIScene extends Phaser.Scene {
       | {
           hp: number;
           maxHp: number;
+          classId: string;
+          className: string;
           level: number;
           experience: number;
           target: { name: string; hp: number; maxHp: number } | null;
@@ -94,7 +96,7 @@ export class UIScene extends Phaser.Scene {
       | undefined;
     this.combatText.setText(
       combat
-        ? `HP ${combat.hp}/${combat.maxHp} • Nv. ${combat.level} • XP ${combat.experience}` +
+        ? `${combat.className} • HP ${combat.hp}/${combat.maxHp} • Nv. ${combat.level} • XP ${combat.experience}` +
             (combat.target ? `\nAlvo: ${combat.target.name} ${combat.target.hp}/${combat.target.maxHp}` : '')
         : '',
     );

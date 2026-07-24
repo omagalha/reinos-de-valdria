@@ -1,5 +1,10 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../dimensions';
+import {
+  DEFAULT_PLAYER_CLASS,
+  playerClasses,
+  type PlayerClassId,
+} from '../data/combat-data';
 
 interface MenuData {
   error?: string;
@@ -7,6 +12,7 @@ interface MenuData {
 
 export class MenuScene extends Phaser.Scene {
   private error?: string;
+  private selectedClass: PlayerClassId = DEFAULT_PLAYER_CLASS;
 
   constructor() {
     super('MenuScene');
@@ -31,7 +37,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 140, 'COMBATE BÁSICO • v4.18', {
+      .text(GAME_WIDTH / 2, 140, 'CLASSES E ATAQUES À DISTÂNCIA • v4.19', {
         color: '#a9c7ad',
         fontFamily: 'Arial, sans-serif',
         fontSize: '15px',
@@ -41,10 +47,10 @@ export class MenuScene extends Phaser.Scene {
 
     const description = this.error
       ? 'Há dados inválidos e o laboratório não pode iniciar.\n' + this.error
-      : 'Combate inicial em Phaser + TypeScript\nRatinos • HP • dano • XP • drops';
+      : 'Escolha sua classe para explorar e enfrentar Ratinos';
 
     this.add
-      .text(GAME_WIDTH / 2, 235, description, {
+      .text(GAME_WIDTH / 2, 205, description, {
         align: 'center',
         color: this.error ? '#ffad9c' : '#d8e0d4',
         fontFamily: 'Arial, sans-serif',
@@ -56,13 +62,54 @@ export class MenuScene extends Phaser.Scene {
 
     if (this.error) return;
 
+    const classCards = Object.values(playerClasses).map((playerClass, index) => {
+      const x = GAME_WIDTH / 2 + (index - 1) * 210;
+      const card = this.add
+        .rectangle(x, 292, 190, 104, 0x183025)
+        .setStrokeStyle(2, 0x617866)
+        .setInteractive({ useHandCursor: true });
+      const title = this.add
+        .text(x, 266, playerClass.name.toUpperCase(), {
+          color: '#f5df9a',
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '16px',
+          fontStyle: 'bold',
+        })
+        .setOrigin(0.5);
+      const details = this.add
+        .text(
+          x,
+          307,
+          `HP ${playerClass.maxHp} • dano ${playerClass.damage.join('–')}\nalcance ${playerClass.rangeTiles}`,
+          {
+            align: 'center',
+            color: '#c3d2c5',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '12px',
+            lineSpacing: 5,
+          },
+        )
+        .setOrigin(0.5);
+      card.on('pointerup', () => {
+        this.selectedClass = playerClass.classId;
+        refreshCards();
+      });
+      return { id: playerClass.classId, card, title, details };
+    });
+    const refreshCards = (): void => {
+      classCards.forEach(({ id, card }) =>
+        card.setStrokeStyle(id === this.selectedClass ? 4 : 2, id === this.selectedClass ? 0xffdf78 : 0x617866),
+      );
+    };
+    refreshCards();
+
     const button = this.add
-      .rectangle(GAME_WIDTH / 2, 355, 350, 64, 0xd4ad54)
+      .rectangle(GAME_WIDTH / 2, 405, 350, 58, 0xd4ad54)
       .setStrokeStyle(3, 0xffe7a0)
       .setInteractive({ useHandCursor: true });
 
     const label = this.add
-      .text(GAME_WIDTH / 2, 355, 'EXPLORAR CAMPOS DE VALDRIA', {
+      .text(GAME_WIDTH / 2, 405, 'EXPLORAR CAMPOS DE VALDRIA', {
         color: '#172017',
         fontFamily: 'Arial, sans-serif',
         fontSize: '18px',
@@ -71,6 +118,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     const start = (): void => {
+      this.registry.set('selected-player-class', this.selectedClass);
       button.disableInteractive();
       this.tweens.add({
         targets: [button, label],
@@ -86,7 +134,7 @@ export class MenuScene extends Phaser.Scene {
     this.input.keyboard?.once('keydown-ENTER', start);
 
     this.add
-      .text(GAME_WIDTH / 2, 423, 'Clique no botão ou pressione ENTER', {
+      .text(GAME_WIDTH / 2, 454, 'Escolha uma classe e clique no botão ou pressione ENTER', {
         color: '#7f9683',
         fontFamily: 'Arial, sans-serif',
         fontSize: '13px',

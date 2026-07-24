@@ -1,6 +1,6 @@
 # Roteiro de migração
 
-## Marco atual — v4.18
+## Marco atual — v4.19
 
 - aventura atual preservada;
 - fundação Phaser/TypeScript compilando;
@@ -17,6 +17,7 @@
 - toque com A*, minimapa e interações provisórias não combativas.
 - exploração validada em Chromium desktop e viewport mobile horizontal.
 - primeiro combate Phaser contra Ratinos com números dos catálogos.
+- seleção das três classes e ataques à distância provisórios.
 
 ## Etapa 1 — adaptadores entre legado e dados — concluída na v4.14
 
@@ -45,7 +46,7 @@ Concluída quando os fluxos atuais passam tanto no cliente legado quanto no Phas
 
 ## Etapa 4 — combate e Guardiões — iniciada na v4.18
 
-Seleção de alvo, ataque corpo a corpo, HP, IA simples, XP e drops de Ratinos entraram na v4.18. Ainda faltam ataques à distância, projéteis, áreas, outras espécies, vínculo, equipe e habilidades. Eventos de combate devem continuar migrando para regras independentes da cena.
+Seleção de alvo, ataque corpo a corpo, HP, IA simples, XP e drops de Ratinos entraram na v4.18. Seleção das três classes, alcances distintos e projéteis provisórios entraram na v4.19. Ainda faltam habilidades, ataques em área, outras espécies, vínculo e equipe. Eventos de combate devem continuar migrando para regras independentes da cena.
 
 Concluída quando dano, cooldown, loot, XP e vínculo têm paridade numérica.
 

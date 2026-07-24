@@ -1,8 +1,13 @@
 import { describe, expect, test } from 'vitest';
-import { initialCombatData } from '../../src/game/data/combat-data';
+import {
+  getPlayerCombatData,
+  initialCombatData,
+  playerClasses,
+} from '../../src/game/data/combat-data';
 import {
   applyDamage,
   experienceForLevel,
+  isTargetInRange,
   levelAfterExperience,
   rollDamage,
 } from '../../src/game/systems/combat';
@@ -28,6 +33,19 @@ describe('combate básico Phaser', () => {
     expect(rollDamage([5, 13], () => 0)).toBe(5);
     expect(rollDamage([5, 13], () => 0.999999)).toBe(13);
     expect(applyDamage({ hp: 4, maxHp: 25 }, 8).hp).toBe(0);
+  });
+
+  test('expõe as três classes e usa Cavaleiro como fallback seguro', () => {
+    expect(Object.keys(playerClasses)).toEqual(['cavaleiro', 'arqueiro', 'mago']);
+    expect(playerClasses.arqueiro.rangeTiles).toBe(3);
+    expect(playerClasses.mago.maxHp).toBe(110);
+    expect(getPlayerCombatData('classe-inexistente').classId).toBe('cavaleiro');
+  });
+
+  test('calcula alcance em tiles para ataques corpo a corpo e à distância', () => {
+    expect(isTargetInRange(39, 1, 32)).toBe(true);
+    expect(isTargetInRange(41, 1, 32)).toBe(false);
+    expect(isTargetInRange(100, 3, 32)).toBe(true);
   });
 
   test('mantém a curva de experiência do legado', () => {

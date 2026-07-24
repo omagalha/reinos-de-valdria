@@ -3,8 +3,12 @@ import { GAME_HEIGHT, GAME_WIDTH, TILE_SIZE } from '../dimensions';
 import { moveWithCollision, normalizedDirection, type Point2D } from '../systems/movement';
 import { findGridPath, type GridPoint } from '../systems/pathfinding';
 import { nearestInRange } from '../systems/interactions';
-import { initialCombatData } from '../data/combat-data';
-import { applyDamage, levelAfterExperience, rollDamage } from '../systems/combat';
+import {
+  getPlayerCombatData,
+  initialCombatData,
+  type PlayerCombatData,
+} from '../data/combat-data';
+import { applyDamage, isTargetInRange, levelAfterExperience, rollDamage } from '../systems/combat';
 
 type MovementKeys = Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
 
@@ -47,7 +51,8 @@ export class WorldScene extends Phaser.Scene {
   private interactiveMarkers: InteractiveMarker[] = [];
   private monsters: MonsterEntity[] = [];
   private selectedMonster?: MonsterEntity;
-  private playerHp = initialCombatData.player.maxHp;
+  private playerCombatData: PlayerCombatData = initialCombatData.player;
+  private playerHp = this.playerCombatData.maxHp;
   private playerExperience = 0;
   private playerLevel = 1;
   private nextPlayerAttackAt = 0;
@@ -58,6 +63,8 @@ export class WorldScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.playerCombatData = getPlayerCombatData(this.registry.get('selected-player-class') as string | undefined);
+    this.playerHp = this.playerCombatData.maxHp;
     this.createMap();
     const spawn = this.requireObject('player_spawn');
     this.player = this.createPlayer(spawn.x ?? TILE_SIZE, spawn.y ?? TILE_SIZE);
@@ -382,13 +389,13 @@ export class WorldScene extends Phaser.Scene {
       if (distance <= TILE_SIZE * 1.2) {
         if (time >= monster.nextAttackAt) {
           this.playerHp = applyDamage(
-            { hp: this.playerHp, maxHp: initialCombatData.player.maxHp },
+            { hp: this.playerHp, maxHp: this.playerCombatData.maxHp },
             rollDamage(initialCombatData.fieldRat.damage),
           ).hp;
           monster.nextAttackAt = time + 1200;
           this.registry.set('interaction-message', `Ratino atingiu você. HP: ${this.playerHp}.`);
           if (this.playerHp <= 0) {
-            this.playerHp = initialCombatData.player.maxHp;
+            this.playerHp = this.playerCombatData.maxHp;
             const spawn = this.requireObject('player_spawn');
             this.player.setPosition(spawn.x ?? TILE_SIZE, spawn.y ?? TILE_SIZE);
             this.registry.set('interaction-message', 'Você desmaiou e retornou ao acampamento.');
@@ -425,16 +432,42 @@ export class WorldScene extends Phaser.Scene {
       target.container.x,
       target.container.y,
     );
-    if (distance > initialCombatData.player.rangeTiles * TILE_SIZE * 1.25) {
+    if (!isTargetInRange(distance, this.playerCombatData.rangeTiles, TILE_SIZE)) {
       this.registry.set('interaction-message', 'O alvo está fora do alcance.');
       return;
     }
     if (time < this.nextPlayerAttackAt) return;
+    this.nextPlayerAttackAt = time + this.playerCombatData.attackCooldownMs;
+    if (this.playerCombatData.projectileColor !== null) {
+      this.launchProjectile(target);
+      return;
+    }
+    this.resolvePlayerHit(target);
+  }
+
+  private launchProjectile(target: MonsterEntity): void {
+    const projectile = this.add
+      .circle(this.player.x, this.player.y, this.playerCombatData.classId === 'mago' ? 7 : 4, this.playerCombatData.projectileColor ?? 0xffffff)
+      .setDepth(12)
+      .setStrokeStyle(2, 0xf7efd8, 0.8);
+    this.tweens.add({
+      targets: projectile,
+      x: target.container.x,
+      y: target.container.y,
+      duration: 180,
+      ease: 'Linear',
+      onComplete: () => {
+        projectile.destroy();
+        if (!target.defeated) this.resolvePlayerHit(target);
+      },
+    });
+  }
+
+  private resolvePlayerHit(target: MonsterEntity): void {
     target.hp = applyDamage(
       { hp: target.hp, maxHp: target.maxHp },
-      rollDamage(initialCombatData.player.damage),
+      rollDamage(this.playerCombatData.damage),
     ).hp;
-    this.nextPlayerAttackAt = time + initialCombatData.player.attackCooldownMs;
     target.container.setAlpha(0.55);
     this.time.delayedCall(120, () => !target.defeated && target.container.setAlpha(1));
     if (target.hp > 0) {
@@ -492,7 +525,9 @@ export class WorldScene extends Phaser.Scene {
     this.registry.set('interaction-prompt', nearest ? `E/ESPAÇO ou AÇÃO: ${nearest.name}` : '');
     this.registry.set('combat-state', {
       hp: this.playerHp,
-      maxHp: initialCombatData.player.maxHp,
+      maxHp: this.playerCombatData.maxHp,
+      classId: this.playerCombatData.classId,
+      className: this.playerCombatData.name,
       level: this.playerLevel,
       experience: this.playerExperience,
       target: this.selectedMonster
@@ -523,9 +558,24 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private createPlayer(x: number, y: number): Phaser.GameObjects.Container {
+    const classColors: Record<string, number> = {
+      cavaleiro: 0x385f73,
+      arqueiro: 0x4f7c45,
+      mago: 0x765a9c,
+    };
     const shadow = this.add.ellipse(0, 12, 22, 9, 0x000000, 0.35);
     const body = this.add.rectangle(0, 0, 18, 25, 0xd8b25a).setStrokeStyle(2, 0x3f2d20);
-    const cloak = this.add.triangle(0, 4, -10, 13, 10, 13, 0, -7, 0x385f73);
+    const cloak = this.add.triangle(
+      0,
+      4,
+      -10,
+      13,
+      10,
+      13,
+      0,
+      -7,
+      classColors[this.playerCombatData.classId],
+    );
     const head = this.add.circle(0, -13, 7, 0xe2b38a).setStrokeStyle(2, 0x3f2d20);
     return this.add.container(x, y, [shadow, cloak, body, head]).setDepth(10);
   }

@@ -17,7 +17,7 @@ async function canvasPoint(page: Page, logicalX: number, logicalY: number) {
 async function startExploration(page: Page) {
   await page.goto('/modern.html');
   await expect(page.locator('#validation-status')).toHaveAttribute('data-valid', 'true');
-  const start = await canvasPoint(page, 480, 355);
+  const start = await canvasPoint(page, 480, 405);
   await page.mouse.click(start.x, start.y);
   await expect.poll(async () => (await snapshot(page))?.activeScenes).toContain('WorldScene');
   await expect.poll(async () => Boolean((await snapshot(page))?.playerPosition)).toBe(true);
@@ -31,6 +31,18 @@ test('abre Campos de Valdria sem erros e prepara câmera/minimapa', async ({ pag
   expect(state?.minimapReady).toBe(true);
   expect(state?.cameraView?.width).toBeGreaterThan(0);
   expect(errors).toEqual([]);
+});
+
+test('seleciona Arqueiro e aplica seus atributos ao combate', async ({ page }) => {
+  await page.goto('/modern.html');
+  const archerCard = await canvasPoint(page, 480, 292);
+  await page.mouse.click(archerCard.x, archerCard.y);
+  const start = await canvasPoint(page, 480, 405);
+  await page.mouse.click(start.x, start.y);
+  await expect.poll(async () => (await snapshot(page))?.combatState?.classId).toBe('arqueiro');
+  const state = await snapshot(page);
+  expect(state?.selectedPlayerClass).toBe('arqueiro');
+  expect(state?.combatState?.maxHp).toBe(135);
 });
 
 test('movimento diagonal pelo teclado altera os dois eixos', async ({ page }, testInfo) => {
