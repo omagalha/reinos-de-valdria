@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.19 — classes e ataques à distância
+# Reinos de Valdria v4.20 — mana e habilidades
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,20 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- classes e combate Phaser v4.19: \`http://localhost:5173/modern.html\`.
+- habilidades e combate Phaser v4.20: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.19
+## O que entrou na v4.20
+
+- mana própria e regeneração gradual para cada classe;
+- Golpe do Cavaleiro, Tiro do Arqueiro e Flama do Mago;
+- custos, alcances e cooldowns vindos de \`catalogs.json\`;
+- dano ampliado das habilidades e área de efeito da Flama;
+- ativação por \`Q\` ou botão mobile \`HABILIDADE\`;
+- HUD de mana, habilidade e recarga;
+- regras puras e testes de mana e multiplicador de dano;
+- documentação em [habilidades-e-mana-v4.20.md](docs/habilidades-e-mana-v4.20.md).
+
+Mantidos da v4.19:
 
 - seleção de Cavaleiro, Arqueiro ou Mago antes da exploração;
 - HP, dano, alcance e intervalo próprios vindos de \`catalogs.json\`;

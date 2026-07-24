@@ -8,7 +8,16 @@ import {
   initialCombatData,
   type PlayerCombatData,
 } from '../data/combat-data';
-import { applyDamage, isTargetInRange, levelAfterExperience, rollDamage } from '../systems/combat';
+import {
+  applyDamage,
+  canSpendMana,
+  isTargetInRange,
+  levelAfterExperience,
+  restoreMana,
+  rollDamage,
+  scaleDamage,
+  spendMana,
+} from '../systems/combat';
 
 type MovementKeys = Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
 
@@ -53,9 +62,11 @@ export class WorldScene extends Phaser.Scene {
   private selectedMonster?: MonsterEntity;
   private playerCombatData: PlayerCombatData = initialCombatData.player;
   private playerHp = this.playerCombatData.maxHp;
+  private playerMana = this.playerCombatData.maxMp;
   private playerExperience = 0;
   private playerLevel = 1;
   private nextPlayerAttackAt = 0;
+  private nextPlayerSkillAt = 0;
   private materials: Record<string, number> = {};
 
   constructor() {
@@ -65,6 +76,7 @@ export class WorldScene extends Phaser.Scene {
   create(): void {
     this.playerCombatData = getPlayerCombatData(this.registry.get('selected-player-class') as string | undefined);
     this.playerHp = this.playerCombatData.maxHp;
+    this.playerMana = this.playerCombatData.maxMp;
     this.createMap();
     const spawn = this.requireObject('player_spawn');
     this.player = this.createPlayer(spawn.x ?? TILE_SIZE, spawn.y ?? TILE_SIZE);
@@ -83,6 +95,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number): void {
+    this.playerMana = restoreMana(this.playerMana, this.playerCombatData.maxMp, (5 * delta) / 1000);
     const keyboardDirection = {
       x:
         Number(Boolean(this.cursors?.right?.isDown || this.wasd?.right.isDown)) -
@@ -152,6 +165,7 @@ export class WorldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-E', () => this.interact());
     this.input.keyboard.on('keydown-SPACE', () => this.interact());
     this.input.keyboard.on('keydown-F', () => this.playerAttack(this.time.now));
+    this.input.keyboard.on('keydown-Q', () => this.usePlayerSkill(this.time.now));
   }
 
   private configurePointerControls(): void {
@@ -209,6 +223,20 @@ export class WorldScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setInteractive({ useHandCursor: true });
     attack.on('pointerdown', () => this.playerAttack(this.time.now));
+    const skill = this.add
+      .text(GAME_WIDTH - 330, GAME_HEIGHT - 92, 'HABILIDADE', {
+        color: '#f7efd8',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '13px',
+        fontStyle: 'bold',
+        backgroundColor: '#4f4b9d',
+        padding: { x: 13, y: 17 },
+      })
+      .setOrigin(0.5)
+      .setDepth(101)
+      .setScrollFactor(0)
+      .setInteractive({ useHandCursor: true });
+    skill.on('pointerdown', () => this.usePlayerSkill(this.time.now));
   }
 
   private updateJoystick(pointer: Phaser.Input.Pointer): void {
@@ -396,6 +424,7 @@ export class WorldScene extends Phaser.Scene {
           this.registry.set('interaction-message', `Ratino atingiu você. HP: ${this.playerHp}.`);
           if (this.playerHp <= 0) {
             this.playerHp = this.playerCombatData.maxHp;
+            this.playerMana = this.playerCombatData.maxMp;
             const spawn = this.requireObject('player_spawn');
             this.player.setPosition(spawn.x ?? TILE_SIZE, spawn.y ?? TILE_SIZE);
             this.registry.set('interaction-message', 'Você desmaiou e retornou ao acampamento.');
@@ -464,9 +493,89 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private resolvePlayerHit(target: MonsterEntity): void {
+    this.resolvePlayerDamage(target, 1);
+  }
+
+  private usePlayerSkill(time: number): void {
+    const target = this.selectedMonster;
+    const skill = this.playerCombatData.skill;
+    if (!target || target.defeated) {
+      this.registry.set('interaction-message', `Selecione um Ratino para usar ${skill.name}.`);
+      return;
+    }
+    const distance = Phaser.Math.Distance.Between(
+      this.player.x,
+      this.player.y,
+      target.container.x,
+      target.container.y,
+    );
+    if (!isTargetInRange(distance, skill.rangeTiles, TILE_SIZE)) {
+      this.registry.set('interaction-message', `${skill.name}: alvo fora do alcance.`);
+      return;
+    }
+    if (time < this.nextPlayerSkillAt) {
+      const seconds = Math.ceil((this.nextPlayerSkillAt - time) / 1000);
+      this.registry.set('interaction-message', `${skill.name} recarrega em ${seconds}s.`);
+      return;
+    }
+    if (!canSpendMana(this.playerMana, skill.manaCost)) {
+      this.registry.set('interaction-message', `Mana insuficiente para ${skill.name}.`);
+      return;
+    }
+    this.playerMana = spendMana(this.playerMana, skill.manaCost);
+    this.nextPlayerSkillAt = time + skill.cooldownMs;
+
+    if (this.playerCombatData.classId === 'cavaleiro') {
+      this.cameras.main.shake(90, 0.002);
+      this.resolvePlayerDamage(target, skill.damageMultiplier);
+      return;
+    }
+    this.launchSkillProjectile(target);
+  }
+
+  private launchSkillProjectile(target: MonsterEntity): void {
+    const isMage = this.playerCombatData.classId === 'mago';
+    const projectile = this.add
+      .circle(
+        this.player.x,
+        this.player.y,
+        isMage ? 9 : 5,
+        this.playerCombatData.projectileColor ?? 0xffffff,
+      )
+      .setDepth(13)
+      .setStrokeStyle(2, 0xffffff, 0.9);
+    this.tweens.add({
+      targets: projectile,
+      x: target.container.x,
+      y: target.container.y,
+      duration: 220,
+      ease: 'Linear',
+      onComplete: () => {
+        const impact = { x: projectile.x, y: projectile.y };
+        projectile.destroy();
+        if (isMage) {
+          const radius = this.playerCombatData.skill.areaRadiusTiles * TILE_SIZE;
+          const area = this.add.circle(impact.x, impact.y, radius, 0x79c9ff, 0.25).setDepth(11);
+          this.tweens.add({ targets: area, alpha: 0, scale: 1.25, duration: 260, onComplete: () => area.destroy() });
+          for (const monster of this.monsters) {
+            if (
+              !monster.defeated &&
+              Phaser.Math.Distance.Between(impact.x, impact.y, monster.container.x, monster.container.y) <= radius
+            ) {
+              this.resolvePlayerDamage(monster, this.playerCombatData.skill.damageMultiplier);
+            }
+          }
+        } else if (!target.defeated) {
+          this.resolvePlayerDamage(target, this.playerCombatData.skill.damageMultiplier);
+        }
+      },
+    });
+  }
+
+  private resolvePlayerDamage(target: MonsterEntity, multiplier: number): void {
     target.hp = applyDamage(
       { hp: target.hp, maxHp: target.maxHp },
-      rollDamage(this.playerCombatData.damage),
+      scaleDamage(rollDamage(this.playerCombatData.damage), multiplier),
     ).hp;
     target.container.setAlpha(0.55);
     this.time.delayedCall(120, () => !target.defeated && target.container.setAlpha(1));
@@ -526,8 +635,12 @@ export class WorldScene extends Phaser.Scene {
     this.registry.set('combat-state', {
       hp: this.playerHp,
       maxHp: this.playerCombatData.maxHp,
+      mana: Math.floor(this.playerMana),
+      maxMana: this.playerCombatData.maxMp,
       classId: this.playerCombatData.classId,
       className: this.playerCombatData.name,
+      skillName: this.playerCombatData.skill.name,
+      skillReady: this.time.now >= this.nextPlayerSkillAt,
       level: this.playerLevel,
       experience: this.playerExperience,
       target: this.selectedMonster

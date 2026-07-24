@@ -17,12 +17,26 @@ export interface PlayerCombatData {
   rangeTiles: number;
   attackCooldownMs: number;
   projectileColor: number | null;
+  skill: {
+    name: string;
+    manaCost: number;
+    cooldownMs: number;
+    rangeTiles: number;
+    damageMultiplier: number;
+    areaRadiusTiles: number;
+  };
 }
 
 const projectileColors: Record<PlayerClassId, number | null> = {
   cavaleiro: null,
   arqueiro: 0xe8c46a,
   mago: 0x79c9ff,
+};
+
+const skillEffects: Record<PlayerClassId, { damageMultiplier: number; areaRadiusTiles: number }> = {
+  cavaleiro: { damageMultiplier: 1.65, areaRadiusTiles: 0 },
+  arqueiro: { damageMultiplier: 1.5, areaRadiusTiles: 0 },
+  mago: { damageMultiplier: 1.4, areaRadiusTiles: 1.5 },
 };
 
 export const playerClasses = Object.fromEntries(
@@ -37,6 +51,11 @@ export const playerClasses = Object.fromEntries(
       rangeTiles: playerClass.attackRange,
       attackCooldownMs: playerClass.legacy.attackIntervalMs,
       projectileColor: projectileColors[playerClass.id as PlayerClassId],
+      skill: {
+        ...playerClass.skill,
+        rangeTiles: playerClass.legacy.skillRange,
+        ...skillEffects[playerClass.id as PlayerClassId],
+      },
     },
   ]),
 ) as Record<PlayerClassId, PlayerCombatData>;

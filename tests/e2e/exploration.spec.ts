@@ -43,6 +43,8 @@ test('seleciona Arqueiro e aplica seus atributos ao combate', async ({ page }) =
   const state = await snapshot(page);
   expect(state?.selectedPlayerClass).toBe('arqueiro');
   expect(state?.combatState?.maxHp).toBe(135);
+  expect(state?.combatState?.mana).toBe(50);
+  expect(state?.combatState?.maxMana).toBe(50);
 });
 
 test('movimento diagonal pelo teclado altera os dois eixos', async ({ page }, testInfo) => {

@@ -28,7 +28,7 @@ export class UIScene extends Phaser.Scene {
       })
       .setScrollFactor(0);
     this.add
-      .text(18, 38, 'Mover: WASD/toque • Selecione Ratino • F ou ATACAR • ESC volta', {
+      .text(18, 38, 'Mover: WASD/toque • F: atacar • Q: habilidade • ESC volta', {
         color: '#a6b8aa',
         fontFamily: 'Arial, sans-serif',
         fontSize: '13px',
@@ -87,8 +87,12 @@ export class UIScene extends Phaser.Scene {
       | {
           hp: number;
           maxHp: number;
+          mana: number;
+          maxMana: number;
           classId: string;
           className: string;
+          skillName: string;
+          skillReady: boolean;
           level: number;
           experience: number;
           target: { name: string; hp: number; maxHp: number } | null;
@@ -96,7 +100,8 @@ export class UIScene extends Phaser.Scene {
       | undefined;
     this.combatText.setText(
       combat
-        ? `${combat.className} • HP ${combat.hp}/${combat.maxHp} • Nv. ${combat.level} • XP ${combat.experience}` +
+        ? `${combat.className} • HP ${combat.hp}/${combat.maxHp} • MP ${combat.mana}/${combat.maxMana}` +
+            `\nNv. ${combat.level} • XP ${combat.experience} • ${combat.skillName}: ${combat.skillReady ? 'pronta' : 'recarregando'}` +
             (combat.target ? `\nAlvo: ${combat.target.name} ${combat.target.hp}/${combat.target.maxHp}` : '')
         : '',
     );

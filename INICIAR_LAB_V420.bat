@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Reinos de Valdria - Classes e combate v4.19
+title Reinos de Valdria - Habilidades e mana v4.20
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -20,7 +20,7 @@ if not exist node_modules (
   )
 )
 
-echo Iniciando classes e combate Phaser v4.19...
+echo Iniciando habilidades e mana Phaser v4.20...
 call npm run dev:lab
 
 endlocal

@@ -20,6 +20,17 @@ export const isTargetInRange = (
   tileSize: number,
 ): boolean => distancePixels <= rangeTiles * tileSize * 1.25;
 
+export const canSpendMana = (mana: number, cost: number): boolean => mana >= cost;
+
+export const spendMana = (mana: number, cost: number): number =>
+  Math.max(0, mana - Math.max(0, cost));
+
+export const restoreMana = (mana: number, maxMana: number, amount: number): number =>
+  Math.min(maxMana, mana + Math.max(0, amount));
+
+export const scaleDamage = (damage: number, multiplier: number): number =>
+  Math.max(0, Math.round(damage * Math.max(0, multiplier)));
+
 export function experienceForLevel(level: number): number {
   return Math.round((50 / 3) * (level ** 3 - 6 * level ** 2 + 17 * level - 12));
 }

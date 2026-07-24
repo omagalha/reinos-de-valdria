@@ -6,10 +6,14 @@ import {
 } from '../../src/game/data/combat-data';
 import {
   applyDamage,
+  canSpendMana,
   experienceForLevel,
   isTargetInRange,
   levelAfterExperience,
+  restoreMana,
   rollDamage,
+  scaleDamage,
+  spendMana,
 } from '../../src/game/systems/combat';
 
 describe('combate básico Phaser', () => {
@@ -46,6 +50,29 @@ describe('combate básico Phaser', () => {
     expect(isTargetInRange(39, 1, 32)).toBe(true);
     expect(isTargetInRange(41, 1, 32)).toBe(false);
     expect(isTargetInRange(100, 3, 32)).toBe(true);
+  });
+
+  test('preserva custo, alcance e cooldown das habilidades do catálogo', () => {
+    expect(playerClasses.cavaleiro.skill).toMatchObject({
+      name: 'Golpe',
+      manaCost: 12,
+      cooldownMs: 1800,
+      rangeTiles: 1,
+    });
+    expect(playerClasses.arqueiro.skill.rangeTiles).toBe(5);
+    expect(playerClasses.mago.skill.areaRadiusTiles).toBe(1.5);
+  });
+
+  test('gasta, recupera e limita mana com segurança', () => {
+    expect(canSpendMana(12, 12)).toBe(true);
+    expect(canSpendMana(11, 12)).toBe(false);
+    expect(spendMana(20, 12)).toBe(8);
+    expect(restoreMana(93, 95, 10)).toBe(95);
+  });
+
+  test('aplica multiplicador de habilidade com arredondamento', () => {
+    expect(scaleDamage(10, 1.65)).toBe(17);
+    expect(scaleDamage(7, 1.5)).toBe(11);
   });
 
   test('mantém a curva de experiência do legado', () => {

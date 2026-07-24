@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.20.0 — Mana e habilidades de classe
+
+- adiciona mana e regeneração gradual às três classes;
+- implementa Golpe, Tiro e Flama com custo, alcance e cooldown dos catálogos;
+- adiciona dano ampliado e área de efeito da Flama;
+- adiciona comando `Q` e botão mobile de habilidade;
+- amplia o HUD com mana e recarga;
+- adiciona regras puras e testes de mana e dano de habilidade.
+
 ## 4.19.0 — Classes e ataques à distância
 
 - adiciona seleção de Cavaleiro, Arqueiro e Mago no menu Phaser;
