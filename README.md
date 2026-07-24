@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.21 — bestiário inicial dos Campos
+# Reinos de Valdria v4.22 — IA, território e respawn
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,21 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- bestiário e combate Phaser v4.21: \`http://localhost:5173/modern.html\`.
+- IA e combate Phaser v4.22: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.21
+## O que entrou na v4.22
+
+- estados de IA para espera, perseguição, ataque, retorno e derrota;
+- detecção diferente para criaturas territoriais e de emboscada;
+- limite de território e retorno automático ao spawn;
+- respawn seguro após oito segundos;
+- bloqueio de sobreposição entre jogador e monstros;
+- bloqueio de sobreposição entre monstros;
+- testes puros de IA, respawn e separação circular;
+- revisão dos repositórios relevantes sem nova dependência;
+- documentação em [ia-respawn-v4.22.md](docs/ia-respawn-v4.22.md).
+
+Mantidos da v4.21:
 
 - Javali Musgoso e Esporo Errante como espécies originais dos Campos;
 - quatro spawns combatíveis distribuídos pelo mapa;

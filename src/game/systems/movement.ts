@@ -11,6 +11,13 @@ export function normalizedDirection(x: number, y: number): Point2D {
   return { x: x / length, y: y / length };
 }
 
+export const circlesOverlap = (
+  first: Point2D,
+  firstRadius: number,
+  second: Point2D,
+  secondRadius: number,
+): boolean => Math.hypot(first.x - second.x, first.y - second.y) < firstRadius + secondRadius;
+
 export function moveWithCollision(
   position: Point2D,
   direction: Point2D,

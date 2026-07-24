@@ -1,6 +1,11 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH, TILE_SIZE } from '../dimensions';
-import { moveWithCollision, normalizedDirection, type Point2D } from '../systems/movement';
+import {
+  circlesOverlap,
+  moveWithCollision,
+  normalizedDirection,
+  type Point2D,
+} from '../systems/movement';
 import { findGridPath, type GridPoint } from '../systems/pathfinding';
 import { nearestInRange } from '../systems/interactions';
 import {
@@ -20,12 +25,20 @@ import {
   scaleDamage,
   spendMana,
 } from '../systems/combat';
+import {
+  decideMonsterAiState,
+  isRespawnReady,
+  type MonsterAiState,
+} from '../systems/monster-ai';
 
 type MovementKeys = Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
 
 const PLAYER_SPEED = 185;
 const TOUCH_SPEED = 150;
 const PLAYER_RADIUS = 10;
+const MONSTER_RADIUS = 12;
+const MONSTER_RESPAWN_MS = 8_000;
+const MONSTER_LEASH_TILES = 7;
 const JOYSTICK_CENTER = { x: 102, y: GAME_HEIGHT - 96 };
 const JOYSTICK_RADIUS = 58;
 
@@ -47,6 +60,11 @@ interface MonsterEntity {
   nextMoveAt: number;
   nextAttackAt: number;
   defeated: boolean;
+  spawnX: number;
+  spawnY: number;
+  respawnAt: number;
+  engaged: boolean;
+  aiState: MonsterAiState;
 }
 
 export class WorldScene extends Phaser.Scene {
@@ -272,7 +290,8 @@ export class WorldScene extends Phaser.Scene {
       direction,
       distance,
       PLAYER_RADIUS,
-      (x, y, radius) => this.isPositionBlocked(x, y, radius),
+      (x, y, radius) =>
+        this.isPositionBlocked(x, y, radius) || this.isEntityBlocked(x, y, radius),
     );
     this.player.setPosition(next.x, next.y);
   }
@@ -399,6 +418,11 @@ export class WorldScene extends Phaser.Scene {
         nextMoveAt: 0,
         nextAttackAt: 0,
         defeated: false,
+        spawnX: x,
+        spawnY: y,
+        respawnAt: 0,
+        engaged: false,
+        aiState: 'idle',
       };
       container.on('pointerdown', () => {
         this.selectedMonster = monster;
@@ -410,15 +434,38 @@ export class WorldScene extends Phaser.Scene {
 
   private updateCombat(time: number): void {
     for (const monster of this.monsters) {
-      if (monster.defeated) continue;
+      if (monster.defeated) {
+        if (isRespawnReady(true, time, monster.respawnAt)) this.respawnMonster(monster, time);
+        continue;
+      }
       const distance = Phaser.Math.Distance.Between(
         monster.container.x,
         monster.container.y,
         this.player.x,
         this.player.y,
       );
-      if (distance > monster.combat.visionTiles * TILE_SIZE) continue;
-      if (distance <= TILE_SIZE * 1.2) {
+      const distanceToSpawn = Phaser.Math.Distance.Between(
+        monster.container.x,
+        monster.container.y,
+        monster.spawnX,
+        monster.spawnY,
+      );
+      monster.aiState = decideMonsterAiState({
+        behavior: monster.combat.behavior,
+        defeated: monster.defeated,
+        engaged: monster.engaged,
+        distanceToPlayer: distance,
+        distanceToSpawn,
+        visionRange: monster.combat.visionTiles * TILE_SIZE,
+        attackRange: TILE_SIZE * 1.2,
+        leashRange: MONSTER_LEASH_TILES * TILE_SIZE,
+      });
+      if (monster.aiState === 'idle') {
+        monster.engaged = false;
+        continue;
+      }
+      if (monster.aiState === 'attacking') {
+        monster.engaged = true;
         if (time >= monster.nextAttackAt) {
           this.playerHp = applyDamage(
             { hp: this.playerHp, maxHp: this.playerCombatData.maxHp },
@@ -437,19 +484,34 @@ export class WorldScene extends Phaser.Scene {
         continue;
       }
       if (time < monster.nextMoveAt) continue;
+      const destination =
+        monster.aiState === 'returning'
+          ? { x: monster.spawnX, y: monster.spawnY }
+          : { x: this.player.x, y: this.player.y };
+      if (monster.aiState === 'chasing') monster.engaged = true;
       const direction = {
-        x: this.player.x - monster.container.x,
-        y: this.player.y - monster.container.y,
+        x: destination.x - monster.container.x,
+        y: destination.y - monster.container.y,
       };
       const next = moveWithCollision(
         { x: monster.container.x, y: monster.container.y },
         direction,
         TILE_SIZE,
-        PLAYER_RADIUS,
-        (x, y, radius) => this.isPositionBlocked(x, y, radius),
+        MONSTER_RADIUS,
+        (x, y, radius) =>
+          this.isPositionBlocked(x, y, radius) ||
+          this.isMonsterPositionBlocked(monster, x, y, radius),
       );
       monster.container.setPosition(next.x, next.y);
       monster.nextMoveAt = time + monster.combat.moveCooldownMs;
+      if (
+        monster.aiState === 'returning' &&
+        Phaser.Math.Distance.Between(next.x, next.y, monster.spawnX, monster.spawnY) < 5
+      ) {
+        monster.container.setPosition(monster.spawnX, monster.spawnY);
+        monster.engaged = false;
+        monster.aiState = 'idle';
+      }
     }
   }
 
@@ -504,7 +566,7 @@ export class WorldScene extends Phaser.Scene {
     const target = this.selectedMonster;
     const skill = this.playerCombatData.skill;
     if (!target || target.defeated) {
-      this.registry.set('interaction-message', `Selecione um Ratino para usar ${skill.name}.`);
+      this.registry.set('interaction-message', `Selecione um monstro para usar ${skill.name}.`);
       return;
     }
     const distance = Phaser.Math.Distance.Between(
@@ -588,6 +650,8 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     target.defeated = true;
+    target.aiState = 'defeated';
+    target.respawnAt = this.time.now + MONSTER_RESPAWN_MS;
     target.container.setVisible(false).disableInteractive();
     this.playerExperience += target.combat.experience;
     this.playerLevel = levelAfterExperience(this.playerLevel, this.playerExperience);
@@ -658,7 +722,12 @@ export class WorldScene extends Phaser.Scene {
     });
     this.registry.set(
       'monster-state',
-      this.monsters.map(({ combat, defeated }) => ({ id: combat.monsterId, defeated })),
+      this.monsters.map(({ combat, defeated, aiState, respawnAt }) => ({
+        id: combat.monsterId,
+        defeated,
+        aiState,
+        respawnInMs: defeated ? Math.max(0, respawnAt - this.time.now) : 0,
+      })),
     );
   }
 
@@ -680,6 +749,52 @@ export class WorldScene extends Phaser.Scene {
       water: collect('water'),
       obstacles: collect('obstacles'),
     });
+  }
+
+  private isEntityBlocked(x: number, y: number, radius: number): boolean {
+    return this.monsters.some(
+      (monster) =>
+        !monster.defeated &&
+        circlesOverlap({ x, y }, radius, monster.container, MONSTER_RADIUS),
+    );
+  }
+
+  private isMonsterPositionBlocked(
+    movingMonster: MonsterEntity,
+    x: number,
+    y: number,
+    radius: number,
+  ): boolean {
+    if (circlesOverlap({ x, y }, radius, this.player, PLAYER_RADIUS)) return true;
+    return this.monsters.some(
+      (monster) =>
+        monster !== movingMonster &&
+        !monster.defeated &&
+        circlesOverlap({ x, y }, radius, monster.container, MONSTER_RADIUS),
+    );
+  }
+
+  private respawnMonster(monster: MonsterEntity, time: number): void {
+    if (
+      this.isPositionBlocked(monster.spawnX, monster.spawnY, MONSTER_RADIUS) ||
+      this.isMonsterPositionBlocked(monster, monster.spawnX, monster.spawnY, MONSTER_RADIUS)
+    ) {
+      monster.respawnAt = time + 1_000;
+      return;
+    }
+    monster.hp = monster.maxHp;
+    monster.defeated = false;
+    monster.engaged = false;
+    monster.aiState = 'idle';
+    monster.nextMoveAt = time + monster.combat.moveCooldownMs;
+    monster.nextAttackAt = time + 1_000;
+    monster.respawnAt = 0;
+    monster.container
+      .setPosition(monster.spawnX, monster.spawnY)
+      .setAlpha(1)
+      .setVisible(true)
+      .setInteractive({ useHandCursor: true });
+    this.registry.set('interaction-message', `${monster.combat.name} reapareceu em seu território.`);
   }
 
   private createPlayer(x: number, y: number): Phaser.GameObjects.Container {

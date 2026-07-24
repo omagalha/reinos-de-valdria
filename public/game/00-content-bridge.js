@@ -1,6 +1,6 @@
 /* Arquivo gerado por scripts/generate-legacy-content.mjs.
    Fonte única: src/game/data/catalogs.json. Não edite manualmente. */
-const VALDRIA_CONTENT_VERSION = "4.21.0";
+const VALDRIA_CONTENT_VERSION = "4.22.0";
 const CLASSES = {
   "cavaleiro": {
     "nome": "Cavaleiro",

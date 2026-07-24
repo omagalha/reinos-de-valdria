@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.22.0 — IA, território e respawn
+
+- adiciona estados de IA `idle`, `chasing`, `attacking`, `returning` e `defeated`;
+- diferencia detecção territorial e por emboscada;
+- faz monstros abandonarem perseguições longas e retornarem ao spawn;
+- adiciona respawn seguro após oito segundos;
+- impede sobreposição entre jogador e monstros e entre monstros;
+- aplica conceitos dos repositórios estudados sem adicionar nova dependência.
+
 ## 4.21.0 — Bestiário inicial dos Campos
 
 - adiciona Javali Musgoso e Esporo Errante como espécies originais;
