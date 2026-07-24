@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   getPlayerCombatData,
+  getMonsterCombatData,
   initialCombatData,
   playerClasses,
 } from '../../src/game/data/combat-data';
@@ -73,6 +74,27 @@ describe('combate básico Phaser', () => {
   test('aplica multiplicador de habilidade com arredondamento', () => {
     expect(scaleDamage(10, 1.65)).toBe(17);
     expect(scaleDamage(7, 1.5)).toBe(11);
+  });
+
+  test('adapta todas as espécies dos Campos para o combate Phaser', () => {
+    expect(getMonsterCombatData('ratino-do-campo').moveCooldownMs).toBe(350);
+    expect(getMonsterCombatData('javali-musgoso')).toMatchObject({
+      name: 'Javali Musgoso',
+      maxHp: 48,
+      damage: [3, 11],
+      experience: 12,
+      moveCooldownMs: 430,
+    });
+    expect(getMonsterCombatData('esporo-errante')).toMatchObject({
+      name: 'Esporo Errante',
+      maxHp: 34,
+      behavior: 'emboscada',
+      visionTiles: 4,
+    });
+  });
+
+  test('rejeita IDs de monstros ausentes em vez de criar dados silenciosos', () => {
+    expect(() => getMonsterCombatData('monstro-inexistente')).toThrow(/não encontrado/);
   });
 
   test('mantém a curva de experiência do legado', () => {

@@ -37,7 +37,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 140, 'MANA E HABILIDADES • v4.20', {
+      .text(GAME_WIDTH / 2, 140, 'BESTIÁRIO DOS CAMPOS • v4.21', {
         color: '#a9c7ad',
         fontFamily: 'Arial, sans-serif',
         fontSize: '15px',

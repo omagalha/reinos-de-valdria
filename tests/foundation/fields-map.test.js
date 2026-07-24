@@ -53,6 +53,12 @@ describe('mapa Tiled de Campos de Valdria', () => {
   test('IDs de NPCs, monstros, Guardiões e objetos apontam para catálogos', () => {
     const result = validateFieldsMap(map, gameContent);
     expect(result.success, result.errors.join('\n')).toBe(true);
+    const monsterIds = layer('monster_spawns').objects.map((object) =>
+      object.properties.find(({ name }) => name === 'catalogId')?.value,
+    );
+    expect(monsterIds).toEqual(
+      expect.arrayContaining(['ratino-do-campo', 'javali-musgoso', 'esporo-errante']),
+    );
   });
 
   test('movimento diagonal mantém velocidade e bloqueia passagem entre quinas', () => {

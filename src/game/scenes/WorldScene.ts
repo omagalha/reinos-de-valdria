@@ -5,7 +5,9 @@ import { findGridPath, type GridPoint } from '../systems/pathfinding';
 import { nearestInRange } from '../systems/interactions';
 import {
   getPlayerCombatData,
+  getMonsterCombatData,
   initialCombatData,
+  type MonsterCombatData,
   type PlayerCombatData,
 } from '../data/combat-data';
 import {
@@ -38,6 +40,7 @@ interface InteractiveMarker {
 
 interface MonsterEntity {
   id: string;
+  combat: MonsterCombatData;
   container: Phaser.GameObjects.Container;
   hp: number;
   maxHp: number;
@@ -378,27 +381,28 @@ export class WorldScene extends Phaser.Scene {
     for (const [index, object] of (this.map.getObjectLayer('monster_spawns')?.objects ?? []).entries()) {
       const x = object.x ?? 0;
       const y = object.y ?? 0;
+      const catalogId = this.objectProperty(object, 'catalogId');
+      const combat = getMonsterCombatData(catalogId);
       const shadow = this.add.ellipse(0, 8, 23, 9, 0x000000, 0.3);
-      const body = this.add.ellipse(0, 0, 25, 19, 0x8d6b48).setStrokeStyle(2, 0x3f2d20);
-      const earLeft = this.add.triangle(-7, -8, -5, 1, 1, 1, -2, -7, 0x9f7952);
-      const earRight = this.add.triangle(7, -8, -1, 1, 5, 1, 2, -7, 0x9f7952);
+      const parts = this.createMonsterParts(combat.monsterId);
       const container = this.add
-        .container(x, y, [shadow, body, earLeft, earRight])
+        .container(x, y, [shadow, ...parts])
         .setSize(32, 32)
         .setDepth(8)
         .setInteractive({ useHandCursor: true });
       const monster: MonsterEntity = {
-        id: `ratino-${index + 1}`,
+        id: `${combat.monsterId}-${index + 1}`,
+        combat,
         container,
-        hp: initialCombatData.fieldRat.maxHp,
-        maxHp: initialCombatData.fieldRat.maxHp,
+        hp: combat.maxHp,
+        maxHp: combat.maxHp,
         nextMoveAt: 0,
         nextAttackAt: 0,
         defeated: false,
       };
       container.on('pointerdown', () => {
         this.selectedMonster = monster;
-        this.registry.set('interaction-message', `${initialCombatData.fieldRat.name} selecionado.`);
+        this.registry.set('interaction-message', `${combat.name} selecionado.`);
       });
       this.monsters.push(monster);
     }
@@ -413,15 +417,15 @@ export class WorldScene extends Phaser.Scene {
         this.player.x,
         this.player.y,
       );
-      if (distance > initialCombatData.fieldRat.visionTiles * TILE_SIZE) continue;
+      if (distance > monster.combat.visionTiles * TILE_SIZE) continue;
       if (distance <= TILE_SIZE * 1.2) {
         if (time >= monster.nextAttackAt) {
           this.playerHp = applyDamage(
             { hp: this.playerHp, maxHp: this.playerCombatData.maxHp },
-            rollDamage(initialCombatData.fieldRat.damage),
+            rollDamage(monster.combat.damage),
           ).hp;
           monster.nextAttackAt = time + 1200;
-          this.registry.set('interaction-message', `Ratino atingiu você. HP: ${this.playerHp}.`);
+          this.registry.set('interaction-message', `${monster.combat.name} atingiu você. HP: ${this.playerHp}.`);
           if (this.playerHp <= 0) {
             this.playerHp = this.playerCombatData.maxHp;
             this.playerMana = this.playerCombatData.maxMp;
@@ -445,14 +449,14 @@ export class WorldScene extends Phaser.Scene {
         (x, y, radius) => this.isPositionBlocked(x, y, radius),
       );
       monster.container.setPosition(next.x, next.y);
-      monster.nextMoveAt = time + initialCombatData.fieldRat.moveCooldownMs;
+      monster.nextMoveAt = time + monster.combat.moveCooldownMs;
     }
   }
 
   private playerAttack(time: number): void {
     const target = this.selectedMonster;
     if (!target || target.defeated) {
-      this.registry.set('interaction-message', 'Selecione um Ratino primeiro.');
+      this.registry.set('interaction-message', 'Selecione um monstro primeiro.');
       return;
     }
     const distance = Phaser.Math.Distance.Between(
@@ -580,15 +584,15 @@ export class WorldScene extends Phaser.Scene {
     target.container.setAlpha(0.55);
     this.time.delayedCall(120, () => !target.defeated && target.container.setAlpha(1));
     if (target.hp > 0) {
-      this.registry.set('interaction-message', `Ratino: ${target.hp}/${target.maxHp} HP.`);
+      this.registry.set('interaction-message', `${target.combat.name}: ${target.hp}/${target.maxHp} HP.`);
       return;
     }
     target.defeated = true;
     target.container.setVisible(false).disableInteractive();
-    this.playerExperience += initialCombatData.fieldRat.experience;
+    this.playerExperience += target.combat.experience;
     this.playerLevel = levelAfterExperience(this.playerLevel, this.playerExperience);
     const drops: string[] = [];
-    for (const drop of initialCombatData.fieldRat.drops) {
+    for (const drop of target.combat.drops) {
       if (Math.random() > drop.chance) continue;
       const amount = rollDamage(drop.amount as [number, number]);
       this.materials[drop.itemId] = (this.materials[drop.itemId] ?? 0) + amount;
@@ -596,7 +600,7 @@ export class WorldScene extends Phaser.Scene {
     }
     this.registry.set(
       'interaction-message',
-      `Ratino derrotado: +${initialCombatData.fieldRat.experience} XP${drops.length ? ` • ${drops.join(', ')}` : ''}.`,
+      `${target.combat.name} derrotado: +${target.combat.experience} XP${drops.length ? ` • ${drops.join(', ')}` : ''}.`,
     );
     this.selectedMonster = undefined;
   }
@@ -644,10 +648,18 @@ export class WorldScene extends Phaser.Scene {
       level: this.playerLevel,
       experience: this.playerExperience,
       target: this.selectedMonster
-        ? { name: initialCombatData.fieldRat.name, hp: this.selectedMonster.hp, maxHp: this.selectedMonster.maxHp }
+        ? {
+            name: this.selectedMonster.combat.name,
+            hp: this.selectedMonster.hp,
+            maxHp: this.selectedMonster.maxHp,
+          }
         : null,
       materials: this.materials,
     });
+    this.registry.set(
+      'monster-state',
+      this.monsters.map(({ combat, defeated }) => ({ id: combat.monsterId, defeated })),
+    );
   }
 
   private publishMinimap(): void {
@@ -691,5 +703,37 @@ export class WorldScene extends Phaser.Scene {
     );
     const head = this.add.circle(0, -13, 7, 0xe2b38a).setStrokeStyle(2, 0x3f2d20);
     return this.add.container(x, y, [shadow, cloak, body, head]).setDepth(10);
+  }
+
+  private objectProperty(
+    object: Phaser.Types.Tilemaps.TiledObject,
+    propertyName: string,
+  ): string | undefined {
+    const properties = object.properties as Array<{ name: string; value: unknown }> | undefined;
+    const value = properties?.find(({ name }) => name === propertyName)?.value;
+    return typeof value === 'string' ? value : undefined;
+  }
+
+  private createMonsterParts(monsterId: string): Phaser.GameObjects.GameObject[] {
+    if (monsterId === 'javali-musgoso') {
+      return [
+        this.add.ellipse(0, 0, 31, 23, 0x526d3c).setStrokeStyle(2, 0x26361f),
+        this.add.circle(12, 2, 8, 0x6d7745).setStrokeStyle(2, 0x26361f),
+        this.add.triangle(16, 7, 0, 0, 7, 3, 0, 6, 0xe4d5a5),
+      ];
+    }
+    if (monsterId === 'esporo-errante') {
+      return [
+        this.add.rectangle(0, 5, 10, 18, 0xc7d6a0).setStrokeStyle(2, 0x34472d),
+        this.add.ellipse(0, -5, 29, 18, 0x9b6ab0).setStrokeStyle(2, 0x493454),
+        this.add.circle(-7, -7, 2, 0xe8d7ef),
+        this.add.circle(6, -3, 2, 0xe8d7ef),
+      ];
+    }
+    return [
+      this.add.ellipse(0, 0, 25, 19, 0x8d6b48).setStrokeStyle(2, 0x3f2d20),
+      this.add.triangle(-7, -8, -5, 1, 1, 1, -2, -7, 0x9f7952),
+      this.add.triangle(7, -8, -1, 1, 5, 1, 2, -7, 0x9f7952),
+    ];
   }
 }

@@ -26,7 +26,7 @@
       }
     },
     {
-      "label": "Valdria: iniciar combate v4.20",
+      "label": "Valdria: iniciar combate v4.21",
       "type": "npm",
       "script": "dev:lab",
       "isBackground": true,

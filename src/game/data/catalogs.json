@@ -1,5 +1,5 @@
 {
-  "version": "4.20.0",
+  "version": "4.21.0",
   "classes": [
     {
       "id": "cavaleiro",
@@ -216,6 +216,24 @@
         { "itemId": "fibra-verde", "chance": 0.2, "amount": [1, 1] }
       ],
       "legacy": { "runtimeName": "Ratino", "speedMs": 350, "vision": 5, "gold": [1, 3], "fragments": { "chance": 0.35, "amount": [1, 1] } }
+    },
+    {
+      "id": "javali-musgoso", "name": "Javali Musgoso", "biomes": ["campos-de-valdria"], "levelRange": [2, 4],
+      "baseHp": 48, "baseDamage": [3, 11], "behavior": "territorial", "experience": 12,
+      "drops": [
+        { "itemId": "fibra-verde", "chance": 0.65, "amount": [1, 2] },
+        { "itemId": "couro-ratino", "chance": 0.2, "amount": [1, 1] }
+      ],
+      "legacy": null
+    },
+    {
+      "id": "esporo-errante", "name": "Esporo Errante", "biomes": ["campos-de-valdria"], "levelRange": [2, 5],
+      "baseHp": 34, "baseDamage": [2, 9], "behavior": "emboscada", "experience": 10,
+      "drops": [
+        { "itemId": "fibra-verde", "chance": 0.5, "amount": [1, 2] },
+        { "itemId": "pocao-de-campo", "chance": 0.15, "amount": [1, 1] }
+      ],
+      "legacy": null
     },
     {
       "id": "caranguejo-solar", "name": "Caranguejo Solar", "biomes": ["praia-solar"], "levelRange": [3, 6],

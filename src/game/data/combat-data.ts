@@ -27,6 +27,18 @@ export interface PlayerCombatData {
   };
 }
 
+export interface MonsterCombatData {
+  monsterId: string;
+  name: string;
+  maxHp: number;
+  damage: [number, number];
+  experience: number;
+  moveCooldownMs: number;
+  visionTiles: number;
+  behavior: string;
+  drops: (typeof catalogs.monsters)[number]['drops'];
+}
+
 const projectileColors: Record<PlayerClassId, number | null> = {
   cavaleiro: null,
   arqueiro: 0xe8c46a,
@@ -66,16 +78,34 @@ export function getPlayerCombatData(classId: string | undefined): PlayerCombatDa
   return playerClasses[classId as PlayerClassId] ?? playerClasses.cavaleiro;
 }
 
+const behaviorDefaults: Record<string, { moveCooldownMs: number; visionTiles: number }> = {
+  territorial: { moveCooldownMs: 430, visionTiles: 5 },
+  emboscada: { moveCooldownMs: 520, visionTiles: 4 },
+  cacador: { moveCooldownMs: 400, visionTiles: 6 },
+  chefe: { moveCooldownMs: 550, visionTiles: 9 },
+};
+
+export function getMonsterCombatData(monsterId: string | undefined): MonsterCombatData {
+  const monster = catalogs.monsters.find(({ id }) => id === monsterId);
+  if (!monster) throw new Error(`Monstro de combate não encontrado no catálogo: ${monsterId ?? '—'}`);
+  const defaults = behaviorDefaults[monster.behavior] ?? {
+    moveCooldownMs: 430,
+    visionTiles: 5,
+  };
+  return {
+    monsterId: monster.id,
+    name: monster.name,
+    maxHp: monster.baseHp,
+    damage: monster.baseDamage as [number, number],
+    experience: monster.experience,
+    moveCooldownMs: monster.legacy?.speedMs ?? defaults.moveCooldownMs,
+    visionTiles: monster.legacy?.vision ?? defaults.visionTiles,
+    behavior: monster.behavior,
+    drops: monster.drops,
+  };
+}
+
 export const initialCombatData = {
   player: playerClasses[DEFAULT_PLAYER_CLASS],
-  fieldRat: {
-    monsterId: fieldRat.id,
-    name: fieldRat.name,
-    maxHp: fieldRat.baseHp,
-    damage: fieldRat.baseDamage as [number, number],
-    experience: fieldRat.experience,
-    moveCooldownMs: fieldRat.legacy.speedMs,
-    visionTiles: fieldRat.legacy.vision,
-    drops: fieldRat.drops,
-  },
+  fieldRat: getMonsterCombatData(fieldRat.id),
 } as const;

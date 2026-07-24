@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.20 — mana e habilidades
+# Reinos de Valdria v4.21 — bestiário inicial dos Campos
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,20 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- habilidades e combate Phaser v4.20: \`http://localhost:5173/modern.html\`.
+- bestiário e combate Phaser v4.21: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.20
+## O que entrou na v4.21
+
+- Javali Musgoso e Esporo Errante como espécies originais dos Campos;
+- quatro spawns combatíveis distribuídos pelo mapa;
+- carregamento genérico de monstros pelo \`catalogId\` do TMJ;
+- HP, dano, experiência e drops próprios por espécie;
+- visão e velocidade adaptadas conforme o comportamento;
+- formas provisórias originais geradas pelo Phaser;
+- testes dos IDs, atributos e drops;
+- documentação em [bestiario-campos-v4.21.md](docs/bestiario-campos-v4.21.md).
+
+Mantidos da v4.20:
 
 - mana própria e regeneração gradual para cada classe;
 - Golpe do Cavaleiro, Tiro do Arqueiro e Flama do Mago;

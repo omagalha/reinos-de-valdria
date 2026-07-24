@@ -1,6 +1,6 @@
 # Roteiro de migração
 
-## Marco atual — v4.20
+## Marco atual — v4.21
 
 - aventura atual preservada;
 - fundação Phaser/TypeScript compilando;
@@ -19,6 +19,7 @@
 - primeiro combate Phaser contra Ratinos com números dos catálogos.
 - seleção das três classes e ataques à distância provisórios.
 - mana, habilidades iniciais e primeiro ataque em área.
+- três espécies combatíveis nos Campos, todas ligadas ao catálogo pelo TMJ.
 
 ## Etapa 1 — adaptadores entre legado e dados — concluída na v4.14
 
@@ -47,7 +48,7 @@ Concluída quando os fluxos atuais passam tanto no cliente legado quanto no Phas
 
 ## Etapa 4 — combate e Guardiões — iniciada na v4.18
 
-Seleção de alvo, ataque corpo a corpo, HP, IA simples, XP e drops de Ratinos entraram na v4.18. Seleção das três classes, alcances distintos e projéteis provisórios entraram na v4.19. Mana, Golpe, Tiro e Flama em área entraram na v4.20. Ainda faltam outras espécies, efeitos completos, vínculo e equipe. Eventos de combate devem continuar migrando para regras independentes da cena.
+Seleção de alvo, ataque corpo a corpo, HP, IA simples, XP e drops de Ratinos entraram na v4.18. Seleção das três classes e projéteis entraram na v4.19. Mana e habilidades entraram na v4.20. Javali Musgoso e Esporo Errante, junto ao carregamento genérico de monstros pelo TMJ, entraram na v4.21. Ainda faltam efeitos completos, respawn, vínculo e equipe. Eventos de combate devem continuar migrando para regras independentes da cena.
 
 Concluída quando dano, cooldown, loot, XP e vínculo têm paridade numérica.
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.21.0 — Bestiário inicial dos Campos
+
+- adiciona Javali Musgoso e Esporo Errante como espécies originais;
+- posiciona as novas espécies em `monster_spawns` do TMJ;
+- resolve cada spawn pelo `catalogId`, sem pressupor Ratinos;
+- aplica HP, dano, XP, drops, visão e movimento por espécie;
+- adiciona formas provisórias originais geradas pelo Phaser;
+- valida espécies, drops e IDs do mapa automaticamente.
+
 ## 4.20.0 — Mana e habilidades de classe
 
 - adiciona mana e regeneração gradual às três classes;

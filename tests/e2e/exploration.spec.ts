@@ -30,6 +30,9 @@ test('abre Campos de Valdria sem erros e prepara câmera/minimapa', async ({ pag
   const state = await snapshot(page);
   expect(state?.minimapReady).toBe(true);
   expect(state?.cameraView?.width).toBeGreaterThan(0);
+  expect(state?.monsters.map(({ id }) => id)).toEqual(
+    expect.arrayContaining(['ratino-do-campo', 'javali-musgoso', 'esporo-errante']),
+  );
   expect(errors).toEqual([]);
 });
 

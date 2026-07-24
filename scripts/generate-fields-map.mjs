@@ -147,6 +147,8 @@ const objectLayers = [
   objectLayer('monster_spawns', 9, [
     point('ratino-norte', 8, 8, [property('catalogId', 'ratino-do-campo')]),
     point('ratino-sul', 10, 25, [property('catalogId', 'ratino-do-campo')]),
+    point('javali-caminho', 19, 11, [property('catalogId', 'javali-musgoso')]),
+    point('esporo-pradaria', 36, 22, [property('catalogId', 'esporo-errante')]),
   ]),
   objectLayer('guardian_spawns', 10, [
     point('folium-bosque', 29, 10, [property('catalogId', 'folium')]),
