@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH, TILE_SIZE } from '../config';
 import { moveWithCollision, normalizedDirection, type Point2D } from '../systems/movement';
+import { findGridPath, type GridPoint } from '../systems/pathfinding';
+import { nearestInRange } from '../systems/interactions';
 
 type MovementKeys = Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
 
@@ -9,6 +11,15 @@ const TOUCH_SPEED = 150;
 const PLAYER_RADIUS = 10;
 const JOYSTICK_CENTER = { x: 102, y: GAME_HEIGHT - 96 };
 const JOYSTICK_RADIUS = 58;
+
+interface InteractiveMarker {
+  id: string;
+  layerName: string;
+  name: string;
+  x: number;
+  y: number;
+  used: boolean;
+}
 
 export class WorldScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Container;
@@ -20,6 +31,8 @@ export class WorldScene extends Phaser.Scene {
   private joystickGraphics!: Phaser.GameObjects.Graphics;
   private joystickDirection: Point2D = { x: 0, y: 0 };
   private joystickPointerId: number | null = null;
+  private touchPath: Phaser.Math.Vector2[] = [];
+  private interactiveMarkers: InteractiveMarker[] = [];
 
   constructor() {
     super('WorldScene');
@@ -35,6 +48,7 @@ export class WorldScene extends Phaser.Scene {
     this.configureKeyboard();
     this.configurePointerControls();
     this.createMobileControl();
+    this.publishMinimap();
 
     this.scene.launch('UIScene');
     this.registry.set('village-stage', 'acampamento');
@@ -54,24 +68,14 @@ export class WorldScene extends Phaser.Scene {
     const hasJoystickInput = this.joystickDirection.x !== 0 || this.joystickDirection.y !== 0;
 
     if (hasKeyboardInput || hasJoystickInput) {
+      this.touchPath = [];
       const direction = hasKeyboardInput ? keyboardDirection : this.joystickDirection;
       this.movePlayer(direction, (PLAYER_SPEED * delta) / 1000);
       this.target.set(this.player.x, this.player.y);
-      return;
+    } else {
+      this.followTouchPath(delta);
     }
-
-    const directionToTarget = new Phaser.Math.Vector2(
-      this.target.x - this.player.x,
-      this.target.y - this.player.y,
-    );
-    if (directionToTarget.lengthSq() <= 9) return;
-
-    const distance = Math.min(directionToTarget.length(), (TOUCH_SPEED * delta) / 1000);
-    const before = { x: this.player.x, y: this.player.y };
-    this.movePlayer(directionToTarget, distance);
-    if (before.x === this.player.x && before.y === this.player.y) {
-      this.target.set(this.player.x, this.player.y);
-    }
+    this.updateExplorationRegistry();
   }
 
   private createMap(): void {
@@ -117,6 +121,8 @@ export class WorldScene extends Phaser.Scene {
       this.scene.stop('UIScene');
       this.scene.start('MenuScene');
     });
+    this.input.keyboard.on('keydown-E', () => this.interact());
+    this.input.keyboard.on('keydown-SPACE', () => this.interact());
   }
 
   private configurePointerControls(): void {
@@ -130,7 +136,7 @@ export class WorldScene extends Phaser.Scene {
         return;
       }
       if (pointer.y < 70) return;
-      this.target.set(pointer.worldX, pointer.worldY);
+      this.createTouchPath(pointer.worldX, pointer.worldY);
     });
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
       if (pointer.id === this.joystickPointerId && pointer.isDown) this.updateJoystick(pointer);
@@ -146,6 +152,20 @@ export class WorldScene extends Phaser.Scene {
   private createMobileControl(): void {
     this.joystickGraphics = this.add.graphics().setDepth(100).setScrollFactor(0);
     this.drawJoystick();
+    const action = this.add
+      .text(GAME_WIDTH - 92, GAME_HEIGHT - 92, 'AÇÃO', {
+        color: '#172017',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '17px',
+        fontStyle: 'bold',
+        backgroundColor: '#d4ad54',
+        padding: { x: 20, y: 16 },
+      })
+      .setOrigin(0.5)
+      .setDepth(101)
+      .setScrollFactor(0)
+      .setInteractive({ useHandCursor: true });
+    action.on('pointerdown', () => this.interact());
   }
 
   private updateJoystick(pointer: Phaser.Input.Pointer): void {
@@ -181,6 +201,48 @@ export class WorldScene extends Phaser.Scene {
       (x, y, radius) => this.isPositionBlocked(x, y, radius),
     );
     this.player.setPosition(next.x, next.y);
+  }
+
+  private createTouchPath(worldX: number, worldY: number): void {
+    const start = this.worldToGrid(this.player.x, this.player.y);
+    const goal = this.worldToGrid(worldX, worldY);
+    const path = findGridPath(start, goal, (x, y) => this.isTileWalkable(x, y));
+    this.touchPath = path.slice(1).map(
+      ({ x, y }) => new Phaser.Math.Vector2(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2),
+    );
+    this.registry.set(
+      'interaction-message',
+      path.length ? `Caminho calculado: ${Math.max(0, path.length - 1)} passos.` : 'Destino bloqueado.',
+    );
+  }
+
+  private followTouchPath(delta: number): void {
+    const nextTarget = this.touchPath[0];
+    if (!nextTarget) return;
+    const direction = new Phaser.Math.Vector2(nextTarget.x - this.player.x, nextTarget.y - this.player.y);
+    if (direction.lengthSq() <= 16) {
+      this.player.setPosition(nextTarget.x, nextTarget.y);
+      this.touchPath.shift();
+      return;
+    }
+    const distance = Math.min(direction.length(), (TOUCH_SPEED * delta) / 1000);
+    const before = { x: this.player.x, y: this.player.y };
+    this.movePlayer(direction, distance);
+    if (before.x === this.player.x && before.y === this.player.y) this.touchPath = [];
+  }
+
+  private worldToGrid(x: number, y: number): GridPoint {
+    return { x: Math.floor(x / TILE_SIZE), y: Math.floor(y / TILE_SIZE) };
+  }
+
+  private isTileWalkable(x: number, y: number): boolean {
+    return (
+      x >= 0 &&
+      y >= 0 &&
+      x < this.map.width &&
+      y < this.map.height &&
+      !this.collisionLayer.getTileAt(x, y)
+    );
   }
 
   private isPositionBlocked(x: number, y: number, radius: number): boolean {
@@ -228,8 +290,71 @@ export class WorldScene extends Phaser.Scene {
           })
           .setOrigin(0.5, 1)
           .setDepth(4);
+        if (['npcs', 'chests', 'shrines', 'portals'].includes(layerName)) {
+          this.interactiveMarkers.push({
+            id: `${layerName}:${object.name}`,
+            layerName,
+            name: object.name,
+            x,
+            y,
+            used: false,
+          });
+        }
       }
     }
+  }
+
+  private nearestInteraction(): InteractiveMarker | undefined {
+    return nearestInRange(this.player, this.interactiveMarkers, TILE_SIZE * 1.4);
+  }
+
+  private interact(): void {
+    const marker = this.nearestInteraction();
+    if (!marker) {
+      this.registry.set('interaction-message', 'Nada para interagir por perto.');
+      return;
+    }
+    const messages: Record<string, string> = {
+      npcs: `${marker.name}: os caminhos de Valdria estão sendo reconstruídos.`,
+      chests: marker.used ? 'Este baú provisório já foi aberto.' : 'Baú aberto: Poção de Campo encontrada.',
+      shrines: 'O santuário registra seu retorno aos Campos de Valdria.',
+      portals: 'Portal reconhecido. A região de destino ainda não foi migrada.',
+    };
+    if (marker.layerName === 'chests') marker.used = true;
+    this.registry.set('interaction-message', messages[marker.layerName] ?? 'Interação registrada.');
+  }
+
+  private updateExplorationRegistry(): void {
+    const camera = this.cameras.main.worldView;
+    this.registry.set('player-position', { x: this.player.x, y: this.player.y });
+    this.registry.set('camera-view', {
+      x: camera.x,
+      y: camera.y,
+      width: camera.width,
+      height: camera.height,
+    });
+    const nearest = this.nearestInteraction();
+    this.registry.set('interaction-prompt', nearest ? `E/ESPAÇO ou AÇÃO: ${nearest.name}` : '');
+  }
+
+  private publishMinimap(): void {
+    const collect = (layerName: string): GridPoint[] => {
+      const data = this.map.getLayer(layerName)?.data ?? [];
+      const points: GridPoint[] = [];
+      data.forEach((row, y) =>
+        row.forEach((tile, x) => {
+          if (tile.index >= 0) points.push({ x, y });
+        }),
+      );
+      return points;
+    };
+    this.registry.set('minimap-data', {
+      width: this.map.width,
+      height: this.map.height,
+      roads: collect('roads'),
+      water: collect('water'),
+      obstacles: collect('obstacles'),
+    });
   }
 
   private createPlayer(x: number, y: number): Phaser.GameObjects.Container {

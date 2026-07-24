@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.15 — Campos de Valdria no Phaser
+# Reinos de Valdria v4.16 — paridade inicial de exploração
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,18 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- Campos de Valdria v4.15: \`http://localhost:5173/modern.html\`.
+- exploração Phaser v4.16: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.15
+## O que entrou na v4.16
+
+- caminho A* em oito direções para toque, contornando água e obstáculos;
+- diagonais do A* impedidas entre duas quinas bloqueadas;
+- minimapa com terreno, estradas, água, obstáculos, jogador e área da câmera;
+- interação por \`E\`, espaço ou botão mobile \`AÇÃO\`;
+- respostas provisórias para NPCs, baús, santuários e portais;
+- regras puras e testes para pathfinding e proximidade.
+
+Mantidos da v4.15:
 
 - mapa TMJ de Campos de Valdria com 48 × 32 tiles de 32 px;
 - tile layers \`ground\`, \`roads\`, \`water\`, \`obstacles\`, \`decoration\` e \`collision\`;
@@ -163,4 +172,4 @@ npm run preview
 
 \`npm run test:parity\` confirma que o HTML e o CSS permanecem iguais, que o original arquivado não mudou e que a ponte é carregada antes dos 12 módulos. Os testes da fundação comparam os números gerados aos catálogos. O save novo não apaga o antigo: a migração lê o formato v2, valida o resultado e grava em IndexedDB quando o novo cliente assumir essa responsabilidade.
 
-Detalhes da área estão em [mapa-campos-de-valdria-v4.15.md](docs/mapa-campos-de-valdria-v4.15.md). O próximo corte recomendado está em [roteiro-de-migracao.md](docs/roteiro-de-migracao.md).
+Detalhes estão em [exploracao-v4.16.md](docs/exploracao-v4.16.md) e [mapa-campos-de-valdria-v4.15.md](docs/mapa-campos-de-valdria-v4.15.md). O próximo corte recomendado está em [roteiro-de-migracao.md](docs/roteiro-de-migracao.md).

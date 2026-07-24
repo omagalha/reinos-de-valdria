@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.16.0 — Paridade inicial de exploração
+
+- adiciona pathfinding A* em oito direções para toque;
+- impede corte diagonal entre quinas bloqueadas;
+- adiciona minimapa e indicador da câmera;
+- adiciona interação por teclado e botão mobile;
+- adiciona respostas provisórias para NPC, baú, santuário e portal;
+- adiciona testes de A* e proximidade;
+- mantém combate, vínculo e save fora desta etapa.
+
 ## 4.15.0 — Primeiro mapa Tiled e exploração Phaser
 
 - adiciona Campos de Valdria em TMJ com 6 tile layers e 9 object layers;

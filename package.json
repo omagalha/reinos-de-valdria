@@ -1,7 +1,7 @@
 {
-  "name": "reinos-de-valdria-v4-15",
+  "name": "reinos-de-valdria-v4-16",
   "private": true,
-  "version": "4.15.0",
+  "version": "4.16.0",
   "type": "module",
   "description": "Jogo legado preservado e fundação TypeScript/Phaser para a evolução segura de Reinos de Valdria.",
   "scripts": {

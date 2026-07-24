@@ -31,7 +31,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 140, 'CAMPOS DE VALDRIA • v4.15', {
+      .text(GAME_WIDTH / 2, 140, 'EXPLORAÇÃO DOS CAMPOS • v4.16', {
         color: '#a9c7ad',
         fontFamily: 'Arial, sans-serif',
         fontSize: '15px',
@@ -41,7 +41,7 @@ export class MenuScene extends Phaser.Scene {
 
     const description = this.error
       ? 'Há dados inválidos e o laboratório não pode iniciar.\n' + this.error
-      : 'Primeira área explorável em Phaser + TypeScript\nMapa TMJ • colisão • câmera • teclado e toque';
+      : 'Exploração em Phaser + TypeScript\nA* • minimapa • interações • teclado e toque';
 
     this.add
       .text(GAME_WIDTH / 2, 235, description, {

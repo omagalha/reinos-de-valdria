@@ -1,6 +1,6 @@
 # Roteiro de migração
 
-## Marco atual — v4.15
+## Marco atual — v4.16
 
 - aventura atual preservada;
 - fundação Phaser/TypeScript compilando;
@@ -14,6 +14,7 @@
 - paridade numérica coberta por testes.
 - primeiro mapa TMJ de Campos de Valdria carregado no Phaser;
 - exploração por teclado, toque e controle virtual com colisão e câmera.
+- toque com A*, minimapa e interações provisórias não combativas.
 
 ## Etapa 1 — adaptadores entre legado e dados — concluída na v4.14
 
@@ -34,9 +35,9 @@ Concluída: os atributos ficam em \`src/game/data/catalogs.json\`; \`public/game
 
 Concluída: o mapa possui tiles e object layers validados, e o personagem circula com colisão e câmera mobile. Consulte [mapa-campos-de-valdria-v4.15.md](mapa-campos-de-valdria-v4.15.md).
 
-## Etapa 3 — paridade de exploração — iniciada
+## Etapa 3 — paridade de exploração — avançada na v4.16
 
-Movimento, colisão diagonal, toque e câmera entraram na v4.15. Ainda faltam A*, minimapa, interações completas e Playwright para teclado e viewport de celular.
+Movimento, colisão diagonal, toque e câmera entraram na v4.15. A*, minimapa e interações provisórias entraram na v4.16. Ainda faltam interações integradas ao save/missões e Playwright em navegador real.
 
 Concluída quando os fluxos atuais passam tanto no cliente legado quanto no Phaser.
 
