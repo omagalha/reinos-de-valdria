@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Reinos de Valdria - IA e respawn v4.22
+title Reinos de Valdria - Primeiro vinculo v4.23
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -20,7 +20,7 @@ if not exist node_modules (
   )
 )
 
-echo Iniciando IA e respawn Phaser v4.22...
+echo Iniciando primeiro vinculo Phaser v4.23...
 call npm run dev:lab
 
 endlocal

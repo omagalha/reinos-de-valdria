@@ -15,7 +15,7 @@ Não abra nem edite os arquivos diretamente dentro do ZIP.
 
 - [Visual Studio Code](https://code.visualstudio.com/).
 
-### Recomendado para a v4.22 completa
+### Recomendado para a v4.23 completa
 
 - [Node.js LTS](https://nodejs.org/) versão 20.19 ou superior.
 
@@ -34,7 +34,7 @@ O VS Code edita o projeto; o Node instala Phaser, TypeScript e as ferramentas de
 ### Opção mais simples no Windows
 
 1. Feche apenas o terminal antigo, se houver.
-2. Dê dois cliques em \`INICIAR_JOGO.bat\` para a aventura atual ou em \`INICIAR_LAB_V422.bat\` para abrir o combate Phaser.
+2. Dê dois cliques em \`INICIAR_JOGO.bat\` para a aventura atual ou em \`INICIAR_LAB_V423.bat\` para abrir o combate Phaser.
 3. Na primeira execução, espere a instalação dos pacotes terminar.
 4. O navegador abrirá automaticamente.
 5. Deixe a janela preta do terminal aberta enquanto estiver jogando ou editando.
@@ -53,9 +53,9 @@ Clique no endereço exibido no terminal, normalmente \`http://localhost:5173/\`.
 ## 5. Abrir cada versão
 
 - aventura completa atual: \`http://localhost:5173/\`;
-- IA e combate Phaser v4.22: \`http://localhost:5173/modern.html\`.
+- Guardião e vínculo Phaser v4.23: \`http://localhost:5173/modern.html\`.
 
-No Phaser, escolha uma classe, use WASD/setas, toque no destino ou arraste o controle virtual. Selecione um Ratino, use \`F\` ou \`ATACAR\` para o ataque comum e \`Q\` ou \`HABILIDADE\` para a técnica da classe. Use \`E\`, espaço ou \`AÇÃO\` perto de um marcador.
+No Phaser, escolha uma classe, use WASD/setas, toque no destino ou arraste o controle virtual. Use \`F\`/\`ATACAR\` e \`Q\`/\`HABILIDADE\` no combate. Para Folium, enfraqueça-o, aproxime-se e use \`V\` ou \`VÍNCULO\`. Use \`E\`, espaço ou \`AÇÃO\` perto de outros marcadores.
 
 ## 6. Fazer sua primeira alteração segura
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.23.0 — Primeiro vínculo Phaser
+
+- instancia Folium a partir de `guardian_spawns` e `catalogs.json`;
+- adiciona seleção e enfraquecimento sem derrotar o Guardião;
+- preserva a fórmula de chance de vínculo do Canvas;
+- adiciona tentativa por `V` e botão mobile `VÍNCULO`;
+- adiciona três Núcleos de Essência provisórios por sessão;
+- registra Folium em uma equipe provisória após o sucesso;
+- mantém vínculo e equipe fora do save nesta primeira integração.
+
 ## 4.22.0 — IA, território e respawn
 
 - adiciona estados de IA `idle`, `chasing`, `attacking`, `returning` e `defeated`;

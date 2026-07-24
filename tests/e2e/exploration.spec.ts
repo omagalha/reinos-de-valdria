@@ -34,6 +34,7 @@ test('abre Campos de Valdria sem erros e prepara câmera/minimapa', async ({ pag
     expect.arrayContaining(['ratino-do-campo', 'javali-musgoso', 'esporo-errante']),
   );
   expect(state?.monsters.every(({ aiState }) => typeof aiState === 'string')).toBe(true);
+  expect(state?.guardian).toMatchObject({ id: 'folium', hp: 60, maxHp: 60, bonded: false });
   expect(errors).toEqual([]);
 });
 

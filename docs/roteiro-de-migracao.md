@@ -1,6 +1,6 @@
 # Roteiro de migração
 
-## Marco atual — v4.22
+## Marco atual — v4.23
 
 - aventura atual preservada;
 - fundação Phaser/TypeScript compilando;
@@ -21,6 +21,7 @@
 - mana, habilidades iniciais e primeiro ataque em área.
 - três espécies combatíveis nos Campos, todas ligadas ao catálogo pelo TMJ.
 - IA por estados, território, respawn e separação entre entidades.
+- primeiro encontro, enfraquecimento e vínculo provisório com Folium.
 
 ## Etapa 1 — adaptadores entre legado e dados — concluída na v4.14
 
@@ -49,7 +50,7 @@ Concluída quando os fluxos atuais passam tanto no cliente legado quanto no Phas
 
 ## Etapa 4 — combate e Guardiões — iniciada na v4.18
 
-Seleção de alvo, HP, IA simples, XP e drops entraram na v4.18. Classes e projéteis entraram na v4.19; mana e habilidades na v4.20; novas espécies e carregamento genérico na v4.21. Estados de IA, retorno ao território, respawn e separação de entidades entraram na v4.22. Ainda faltam efeitos completos, vínculo e equipe. Eventos de combate devem continuar migrando para regras independentes da cena.
+Seleção de alvo, HP, IA, XP, classes, habilidades e espécies entraram entre v4.18 e v4.22. O encontro com Folium, enfraquecimento, chance de vínculo e equipe provisória entraram na v4.23. Ainda faltam persistência do vínculo, companheiro ativo, progressão e habilidades de Guardião. Eventos de combate devem continuar migrando para regras independentes da cena.
 
 Concluída quando dano, cooldown, loot, XP e vínculo têm paridade numérica.
 

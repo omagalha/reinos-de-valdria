@@ -28,7 +28,7 @@ export class UIScene extends Phaser.Scene {
       })
       .setScrollFactor(0);
     this.add
-      .text(18, 38, 'Mover: WASD/toque • F: atacar • Q: habilidade • ESC volta', {
+      .text(18, 38, 'Mover • F: atacar • Q: habilidade • V: vínculo • ESC volta', {
         color: '#a6b8aa',
         fontFamily: 'Arial, sans-serif',
         fontSize: '13px',
@@ -96,13 +96,20 @@ export class UIScene extends Phaser.Scene {
           level: number;
           experience: number;
           target: { name: string; hp: number; maxHp: number } | null;
+          guardian: { name: string; hp: number; maxHp: number } | null;
+          essenceCores: number;
+          guardianTeam: string[];
         }
       | undefined;
     this.combatText.setText(
       combat
         ? `${combat.className} • HP ${combat.hp}/${combat.maxHp} • MP ${combat.mana}/${combat.maxMana}` +
             `\nNv. ${combat.level} • XP ${combat.experience} • ${combat.skillName}: ${combat.skillReady ? 'pronta' : 'recarregando'}` +
-            (combat.target ? `\nAlvo: ${combat.target.name} ${combat.target.hp}/${combat.target.maxHp}` : '')
+            (combat.target ? `\nAlvo: ${combat.target.name} ${combat.target.hp}/${combat.target.maxHp}` : '') +
+            (combat.guardian
+              ? `\nGuardião: ${combat.guardian.name} ${combat.guardian.hp}/${combat.guardian.maxHp}`
+              : '') +
+            `\nNúcleos: ${combat.essenceCores} • Equipe: ${combat.guardianTeam.length}`
         : '',
     );
     this.updateMinimap();

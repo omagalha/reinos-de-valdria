@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.22 — IA, território e respawn
+# Reinos de Valdria v4.23 — primeiro vínculo Phaser
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,21 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- IA e combate Phaser v4.22: \`http://localhost:5173/modern.html\`.
+- Guardião e vínculo Phaser v4.23: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.22
+## O que entrou na v4.23
+
+- Folium selvagem carregado pelo objeto \`guardian_spawns\`;
+- dados de espécie vindos de \`catalogs.json\`;
+- seleção e enfraquecimento até o mínimo de 1 HP;
+- fórmula de vínculo preservada do Canvas;
+- comando \`V\` e botão mobile \`VÍNCULO\`;
+- três Núcleos de Essência provisórios para teste;
+- primeira equipe provisória após o vínculo;
+- testes de dados, enfraquecimento e chance;
+- documentação em [primeiro-vinculo-v4.23.md](docs/primeiro-vinculo-v4.23.md).
+
+Mantidos da v4.22:
 
 - estados de IA para espera, perseguição, ataque, retorno e derrota;
 - detecção diferente para criaturas territoriais e de emboscada;

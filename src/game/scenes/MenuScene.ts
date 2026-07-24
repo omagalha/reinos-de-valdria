@@ -37,7 +37,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 140, 'IA, TERRITÓRIO E RESPAWN • v4.22', {
+      .text(GAME_WIDTH / 2, 140, 'PRIMEIRO VÍNCULO • v4.23', {
         color: '#a9c7ad',
         fontFamily: 'Arial, sans-serif',
         fontSize: '15px',

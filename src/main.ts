@@ -12,7 +12,7 @@ if (status) {
 }
 
 if (!validation.success) {
-  throw new Error('Os dados da fundação v4.22 são inválidos: ' + validation.errors.join('; '));
+  throw new Error('Os dados da fundação v4.23 são inválidos: ' + validation.errors.join('; '));
 }
 
 const game = new Phaser.Game(createGameConfig());
@@ -30,7 +30,17 @@ if (import.meta.env.DEV) {
       interactionMessage: (game.registry.get('interaction-message') as string | undefined) ?? '',
       selectedPlayerClass: (game.registry.get('selected-player-class') as string | undefined) ?? '',
       combatState: game.registry.get('combat-state') as
-        | { classId: string; hp: number; maxHp: number; mana: number; maxMana: number; target: { hp: number } | null }
+        | {
+            classId: string;
+            hp: number;
+            maxHp: number;
+            mana: number;
+            maxMana: number;
+            target: { hp: number } | null;
+            guardian: { name: string; hp: number; maxHp: number } | null;
+            essenceCores: number;
+            guardianTeam: string[];
+          }
         | undefined,
       monsters:
         (game.registry.get('monster-state') as
@@ -41,6 +51,10 @@ if (import.meta.env.DEV) {
               respawnInMs: number;
             }>
           | undefined) ?? [],
+      guardian: game.registry.get('guardian-state') as
+        | { id: string; hp: number; maxHp: number; bonded: boolean }
+        | null
+        | undefined,
     }),
   };
 }
@@ -63,6 +77,9 @@ declare global {
           mana: number;
           maxMana: number;
           target: { hp: number } | null;
+          guardian: { name: string; hp: number; maxHp: number } | null;
+          essenceCores: number;
+          guardianTeam: string[];
         };
         monsters: Array<{
           id: string;
@@ -70,6 +87,7 @@ declare global {
           aiState: string;
           respawnInMs: number;
         }>;
+        guardian?: { id: string; hp: number; maxHp: number; bonded: boolean } | null;
       };
     };
   }
