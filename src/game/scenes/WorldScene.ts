@@ -35,6 +35,7 @@ import {
   type GuardianCombatData,
 } from '../data/guardian-data';
 import { attemptGuardianBond, weakenGuardianHp } from '../systems/bonding';
+import { addGuardianExperience, shouldFoliumHeal } from '../systems/companion';
 
 type MovementKeys = Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
 
@@ -79,6 +80,11 @@ interface GuardianEntity {
   hp: number;
   maxHp: number;
   bonded: boolean;
+  level: number;
+  experience: number;
+  nextMoveAt: number;
+  nextAttackAt: number;
+  nextSkillAt: number;
 }
 
 export class WorldScene extends Phaser.Scene {
@@ -156,6 +162,7 @@ export class WorldScene extends Phaser.Scene {
       this.followTouchPath(delta);
     }
     this.updateCombat(time);
+    this.updateCompanion(time, delta);
     this.updateExplorationRegistry();
   }
 
@@ -499,6 +506,11 @@ export class WorldScene extends Phaser.Scene {
       hp: combat.maxHp,
       maxHp: combat.maxHp,
       bonded: false,
+      level: 1,
+      experience: 0,
+      nextMoveAt: 0,
+      nextAttackAt: 0,
+      nextSkillAt: 0,
     };
     container.on('pointerdown', () => {
       if (!this.guardian || this.guardian.bonded) return;
@@ -802,6 +814,9 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     guardian.bonded = true;
+    guardian.nextMoveAt = this.time.now + 500;
+    guardian.nextAttackAt = this.time.now + 900;
+    guardian.nextSkillAt = this.time.now + 2_500;
     guardian.container.disableInteractive();
     this.bondedGuardianIds.push(guardian.combat.speciesId);
     this.playerExperience += 30;
@@ -811,10 +826,10 @@ export class WorldScene extends Phaser.Scene {
       targets: guardian.container,
       x: this.player.x,
       y: this.player.y,
-      alpha: 0,
-      scale: 0.25,
+      alpha: 0.8,
+      scale: 0.72,
       duration: 450,
-      onComplete: () => guardian.container.setVisible(false),
+      onComplete: () => guardian.container.setDepth(9).setVisible(true),
     });
     this.registry.set(
       'interaction-message',
@@ -872,12 +887,28 @@ export class WorldScene extends Phaser.Scene {
       this.registry.set('interaction-message', `${target.combat.name}: ${target.hp}/${target.maxHp} HP.`);
       return;
     }
+    this.defeatMonster(target, false);
+  }
+
+  private defeatMonster(target: MonsterEntity, defeatedByGuardian: boolean): void {
     target.defeated = true;
     target.aiState = 'defeated';
     target.respawnAt = this.time.now + MONSTER_RESPAWN_MS;
     target.container.setVisible(false).disableInteractive();
     this.playerExperience += target.combat.experience;
     this.playerLevel = levelAfterExperience(this.playerLevel, this.playerExperience);
+    if (defeatedByGuardian && this.guardian?.bonded) {
+      const progress = addGuardianExperience(
+        {
+          level: this.guardian.level,
+          experience: this.guardian.experience,
+          hp: this.guardian.hp,
+          maxHp: this.guardian.maxHp,
+        },
+        Math.floor(target.combat.experience / 2),
+      );
+      Object.assign(this.guardian, progress);
+    }
     const drops: string[] = [];
     for (const drop of target.combat.drops) {
       if (Math.random() > drop.chance) continue;
@@ -890,6 +921,96 @@ export class WorldScene extends Phaser.Scene {
       `${target.combat.name} derrotado: +${target.combat.experience} XP${drops.length ? ` • ${drops.join(', ')}` : ''}.`,
     );
     this.selectedMonster = undefined;
+  }
+
+  private updateCompanion(time: number, delta: number): void {
+    const guardian = this.guardian;
+    if (!guardian?.bonded) return;
+    const target =
+      this.selectedMonster && !this.selectedMonster.defeated
+        ? this.selectedMonster
+        : undefined;
+    const targetDistance = target
+      ? Phaser.Math.Distance.Between(
+          guardian.container.x,
+          guardian.container.y,
+          target.container.x,
+          target.container.y,
+        )
+      : Number.POSITIVE_INFINITY;
+    const playerDistance = Phaser.Math.Distance.Between(
+      guardian.container.x,
+      guardian.container.y,
+      this.player.x,
+      this.player.y,
+    );
+    const destination =
+      target && targetDistance > TILE_SIZE * 1.25
+        ? target.container
+        : playerDistance > TILE_SIZE * 1.7
+          ? this.player
+          : undefined;
+    if (destination && time >= guardian.nextMoveAt) {
+      const next = moveWithCollision(
+        guardian.container,
+        {
+          x: destination.x - guardian.container.x,
+          y: destination.y - guardian.container.y,
+        },
+        (145 * delta) / 1000,
+        MONSTER_RADIUS,
+        (x, y, radius) => this.isPositionBlocked(x, y, radius),
+      );
+      guardian.container.setPosition(next.x, next.y);
+      guardian.nextMoveAt = time + 16;
+    }
+
+    if (target && targetDistance <= TILE_SIZE * 1.3 && time >= guardian.nextAttackAt) {
+      const damage = rollDamage(guardian.combat.damage) + (guardian.level - 1) * 2;
+      target.hp = applyDamage({ hp: target.hp, maxHp: target.maxHp }, damage).hp;
+      target.container.setAlpha(0.45);
+      this.time.delayedCall(120, () => !target.defeated && target.container.setAlpha(1));
+      guardian.nextAttackAt = time + 900;
+      if (target.hp <= 0) {
+        this.defeatMonster(target, true);
+      } else {
+        this.registry.set(
+          'interaction-message',
+          `${guardian.combat.name} atingiu ${target.combat.name}: ${target.hp}/${target.maxHp} HP.`,
+        );
+      }
+    }
+
+    if (
+      time >= guardian.nextSkillAt &&
+      shouldFoliumHeal(
+        this.playerHp,
+        this.playerCombatData.maxHp,
+        guardian.hp,
+        guardian.maxHp,
+        Boolean(target),
+      )
+    ) {
+      const playerHealing = guardian.combat.primarySkill.power + guardian.level * 3;
+      const guardianHealing = guardian.combat.primarySkill.power + guardian.level;
+      this.playerHp = Math.min(this.playerCombatData.maxHp, this.playerHp + playerHealing);
+      guardian.hp = Math.min(guardian.maxHp, guardian.hp + guardianHealing);
+      guardian.nextSkillAt = time + guardian.combat.primarySkill.cooldownMs;
+      const effect = this.add
+        .circle(this.player.x, this.player.y, 28, 0x68d788, 0.3)
+        .setDepth(12);
+      this.tweens.add({
+        targets: effect,
+        alpha: 0,
+        scale: 1.5,
+        duration: 500,
+        onComplete: () => effect.destroy(),
+      });
+      this.registry.set(
+        'interaction-message',
+        `${guardian.combat.name} usou ${guardian.combat.primarySkill.name}.`,
+      );
+    }
   }
 
   private nearestInteraction(): InteractiveMarker | undefined {
@@ -950,6 +1071,15 @@ export class WorldScene extends Phaser.Scene {
         : null,
       essenceCores: this.essenceCores,
       guardianTeam: this.bondedGuardianIds,
+      activeGuardian: this.guardian?.bonded
+        ? {
+            name: this.guardian.combat.name,
+            hp: this.guardian.hp,
+            maxHp: this.guardian.maxHp,
+            level: this.guardian.level,
+            experience: this.guardian.experience,
+          }
+        : null,
       materials: this.materials,
     });
     this.registry.set(
@@ -969,6 +1099,10 @@ export class WorldScene extends Phaser.Scene {
             hp: this.guardian.hp,
             maxHp: this.guardian.maxHp,
             bonded: this.guardian.bonded,
+            level: this.guardian.level,
+            experience: this.guardian.experience,
+            x: this.guardian.container.x,
+            y: this.guardian.container.y,
           }
         : null,
     );

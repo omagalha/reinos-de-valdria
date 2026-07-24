@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.23 — primeiro vínculo Phaser
+# Reinos de Valdria v4.24 — Folium companheiro
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,21 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- Guardião e vínculo Phaser v4.23: \`http://localhost:5173/modern.html\`.
+- Folium companheiro Phaser v4.24: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.23
+## O que entrou na v4.24
+
+- Folium permanece visível depois do vínculo;
+- companheiro segue o jogador e o alvo selecionado;
+- ataque automático com dano do catálogo;
+- metade do XP no golpe final, como no Canvas;
+- nível e crescimento de HP do Guardião;
+- Raiz Vital automática durante combates;
+- HUD com Guardião ativo e nível;
+- testes de progressão e decisão de cura;
+- documentação em [folium-companheiro-v4.24.md](docs/folium-companheiro-v4.24.md).
+
+Mantidos da v4.23:
 
 - Folium selvagem carregado pelo objeto \`guardian_spawns\`;
 - dados de espécie vindos de \`catalogs.json\`;

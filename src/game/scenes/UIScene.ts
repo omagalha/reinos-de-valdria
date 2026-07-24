@@ -99,6 +99,13 @@ export class UIScene extends Phaser.Scene {
           guardian: { name: string; hp: number; maxHp: number } | null;
           essenceCores: number;
           guardianTeam: string[];
+          activeGuardian: {
+            name: string;
+            hp: number;
+            maxHp: number;
+            level: number;
+            experience: number;
+          } | null;
         }
       | undefined;
     this.combatText.setText(
@@ -109,7 +116,10 @@ export class UIScene extends Phaser.Scene {
             (combat.guardian
               ? `\nGuardião: ${combat.guardian.name} ${combat.guardian.hp}/${combat.guardian.maxHp}`
               : '') +
-            `\nNúcleos: ${combat.essenceCores} • Equipe: ${combat.guardianTeam.length}`
+            `\nNúcleos: ${combat.essenceCores} • Equipe: ${combat.guardianTeam.length}` +
+            (combat.activeGuardian
+              ? ` • Ativo: ${combat.activeGuardian.name} Nv.${combat.activeGuardian.level}`
+              : '')
         : '',
     );
     this.updateMinimap();

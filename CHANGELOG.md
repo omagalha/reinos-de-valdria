@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.24.0 — Folium companheiro
+
+- mantém Folium visível e seguindo o jogador após o vínculo;
+- faz o companheiro perseguir e atacar o monstro selecionado;
+- preserva dano, intervalo e metade do XP do comportamento Canvas;
+- adiciona nível, experiência e crescimento de HP do Guardião;
+- implementa uso automático de Raiz Vital durante o combate;
+- amplia o HUD e o estado de diagnóstico do companheiro;
+- mantém a equipe somente na sessão.
+
 ## 4.23.0 — Primeiro vínculo Phaser
 
 - instancia Folium a partir de `guardian_spawns` e `catalogs.json`;

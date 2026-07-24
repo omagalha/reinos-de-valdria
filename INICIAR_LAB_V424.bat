@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Reinos de Valdria - Primeiro vinculo v4.23
+title Reinos de Valdria - Folium companheiro v4.24
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -20,7 +20,7 @@ if not exist node_modules (
   )
 )
 
-echo Iniciando primeiro vinculo Phaser v4.23...
+echo Iniciando Folium companheiro Phaser v4.24...
 call npm run dev:lab
 
 endlocal

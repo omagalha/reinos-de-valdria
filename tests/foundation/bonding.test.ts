@@ -10,6 +10,7 @@ describe('primeiro vínculo Phaser', () => {
       maxHp: 60,
       damage: [4, 12],
       bondDifficulty: 0.25,
+      primarySkill: { name: 'Raiz Vital', power: 9, cooldownMs: 9000, effect: 'cura' },
     });
   });
 
