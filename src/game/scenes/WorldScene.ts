@@ -3,6 +3,8 @@ import { GAME_HEIGHT, GAME_WIDTH, TILE_SIZE } from '../dimensions';
 import { moveWithCollision, normalizedDirection, type Point2D } from '../systems/movement';
 import { findGridPath, type GridPoint } from '../systems/pathfinding';
 import { nearestInRange } from '../systems/interactions';
+import { initialCombatData } from '../data/combat-data';
+import { applyDamage, levelAfterExperience, rollDamage } from '../systems/combat';
 
 type MovementKeys = Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
 
@@ -21,6 +23,16 @@ interface InteractiveMarker {
   used: boolean;
 }
 
+interface MonsterEntity {
+  id: string;
+  container: Phaser.GameObjects.Container;
+  hp: number;
+  maxHp: number;
+  nextMoveAt: number;
+  nextAttackAt: number;
+  defeated: boolean;
+}
+
 export class WorldScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Container;
   private map!: Phaser.Tilemaps.Tilemap;
@@ -33,6 +45,13 @@ export class WorldScene extends Phaser.Scene {
   private joystickPointerId: number | null = null;
   private touchPath: Phaser.Math.Vector2[] = [];
   private interactiveMarkers: InteractiveMarker[] = [];
+  private monsters: MonsterEntity[] = [];
+  private selectedMonster?: MonsterEntity;
+  private playerHp = initialCombatData.player.maxHp;
+  private playerExperience = 0;
+  private playerLevel = 1;
+  private nextPlayerAttackAt = 0;
+  private materials: Record<string, number> = {};
 
   constructor() {
     super('WorldScene');
@@ -42,6 +61,7 @@ export class WorldScene extends Phaser.Scene {
     this.createMap();
     const spawn = this.requireObject('player_spawn');
     this.player = this.createPlayer(spawn.x ?? TILE_SIZE, spawn.y ?? TILE_SIZE);
+    this.createMonsters();
     this.target.set(this.player.x, this.player.y);
     this.renderMapMarkers();
     this.configureCamera();
@@ -55,7 +75,7 @@ export class WorldScene extends Phaser.Scene {
     this.registry.set('current-biome', 'campos-de-valdria');
   }
 
-  update(_time: number, delta: number): void {
+  update(time: number, delta: number): void {
     const keyboardDirection = {
       x:
         Number(Boolean(this.cursors?.right?.isDown || this.wasd?.right.isDown)) -
@@ -75,6 +95,7 @@ export class WorldScene extends Phaser.Scene {
     } else {
       this.followTouchPath(delta);
     }
+    this.updateCombat(time);
     this.updateExplorationRegistry();
   }
 
@@ -123,6 +144,7 @@ export class WorldScene extends Phaser.Scene {
     });
     this.input.keyboard.on('keydown-E', () => this.interact());
     this.input.keyboard.on('keydown-SPACE', () => this.interact());
+    this.input.keyboard.on('keydown-F', () => this.playerAttack(this.time.now));
   }
 
   private configurePointerControls(): void {
@@ -166,6 +188,20 @@ export class WorldScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setInteractive({ useHandCursor: true });
     action.on('pointerdown', () => this.interact());
+    const attack = this.add
+      .text(GAME_WIDTH - 210, GAME_HEIGHT - 92, 'ATACAR', {
+        color: '#f7efd8',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '15px',
+        fontStyle: 'bold',
+        backgroundColor: '#9d3f38',
+        padding: { x: 16, y: 16 },
+      })
+      .setOrigin(0.5)
+      .setDepth(101)
+      .setScrollFactor(0)
+      .setInteractive({ useHandCursor: true });
+    attack.on('pointerdown', () => this.playerAttack(this.time.now));
   }
 
   private updateJoystick(pointer: Phaser.Input.Pointer): void {
@@ -268,7 +304,6 @@ export class WorldScene extends Phaser.Scene {
   private renderMapMarkers(): void {
     const markerStyles = [
       ['npcs', 0xf0c96a, 'NPC'],
-      ['monster_spawns', 0xc66b58, 'SPAWN'],
       ['guardian_spawns', 0x61c79b, 'GUARDIÃO'],
       ['chests', 0xb98745, 'BAÚ'],
       ['shrines', 0x86cbd1, 'SANTUÁRIO'],
@@ -304,6 +339,126 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
+  private createMonsters(): void {
+    for (const [index, object] of (this.map.getObjectLayer('monster_spawns')?.objects ?? []).entries()) {
+      const x = object.x ?? 0;
+      const y = object.y ?? 0;
+      const shadow = this.add.ellipse(0, 8, 23, 9, 0x000000, 0.3);
+      const body = this.add.ellipse(0, 0, 25, 19, 0x8d6b48).setStrokeStyle(2, 0x3f2d20);
+      const earLeft = this.add.triangle(-7, -8, -5, 1, 1, 1, -2, -7, 0x9f7952);
+      const earRight = this.add.triangle(7, -8, -1, 1, 5, 1, 2, -7, 0x9f7952);
+      const container = this.add
+        .container(x, y, [shadow, body, earLeft, earRight])
+        .setSize(32, 32)
+        .setDepth(8)
+        .setInteractive({ useHandCursor: true });
+      const monster: MonsterEntity = {
+        id: `ratino-${index + 1}`,
+        container,
+        hp: initialCombatData.fieldRat.maxHp,
+        maxHp: initialCombatData.fieldRat.maxHp,
+        nextMoveAt: 0,
+        nextAttackAt: 0,
+        defeated: false,
+      };
+      container.on('pointerdown', () => {
+        this.selectedMonster = monster;
+        this.registry.set('interaction-message', `${initialCombatData.fieldRat.name} selecionado.`);
+      });
+      this.monsters.push(monster);
+    }
+  }
+
+  private updateCombat(time: number): void {
+    for (const monster of this.monsters) {
+      if (monster.defeated) continue;
+      const distance = Phaser.Math.Distance.Between(
+        monster.container.x,
+        monster.container.y,
+        this.player.x,
+        this.player.y,
+      );
+      if (distance > initialCombatData.fieldRat.visionTiles * TILE_SIZE) continue;
+      if (distance <= TILE_SIZE * 1.2) {
+        if (time >= monster.nextAttackAt) {
+          this.playerHp = applyDamage(
+            { hp: this.playerHp, maxHp: initialCombatData.player.maxHp },
+            rollDamage(initialCombatData.fieldRat.damage),
+          ).hp;
+          monster.nextAttackAt = time + 1200;
+          this.registry.set('interaction-message', `Ratino atingiu você. HP: ${this.playerHp}.`);
+          if (this.playerHp <= 0) {
+            this.playerHp = initialCombatData.player.maxHp;
+            const spawn = this.requireObject('player_spawn');
+            this.player.setPosition(spawn.x ?? TILE_SIZE, spawn.y ?? TILE_SIZE);
+            this.registry.set('interaction-message', 'Você desmaiou e retornou ao acampamento.');
+          }
+        }
+        continue;
+      }
+      if (time < monster.nextMoveAt) continue;
+      const direction = {
+        x: this.player.x - monster.container.x,
+        y: this.player.y - monster.container.y,
+      };
+      const next = moveWithCollision(
+        { x: monster.container.x, y: monster.container.y },
+        direction,
+        TILE_SIZE,
+        PLAYER_RADIUS,
+        (x, y, radius) => this.isPositionBlocked(x, y, radius),
+      );
+      monster.container.setPosition(next.x, next.y);
+      monster.nextMoveAt = time + initialCombatData.fieldRat.moveCooldownMs;
+    }
+  }
+
+  private playerAttack(time: number): void {
+    const target = this.selectedMonster;
+    if (!target || target.defeated) {
+      this.registry.set('interaction-message', 'Selecione um Ratino primeiro.');
+      return;
+    }
+    const distance = Phaser.Math.Distance.Between(
+      this.player.x,
+      this.player.y,
+      target.container.x,
+      target.container.y,
+    );
+    if (distance > initialCombatData.player.rangeTiles * TILE_SIZE * 1.25) {
+      this.registry.set('interaction-message', 'O alvo está fora do alcance.');
+      return;
+    }
+    if (time < this.nextPlayerAttackAt) return;
+    target.hp = applyDamage(
+      { hp: target.hp, maxHp: target.maxHp },
+      rollDamage(initialCombatData.player.damage),
+    ).hp;
+    this.nextPlayerAttackAt = time + initialCombatData.player.attackCooldownMs;
+    target.container.setAlpha(0.55);
+    this.time.delayedCall(120, () => !target.defeated && target.container.setAlpha(1));
+    if (target.hp > 0) {
+      this.registry.set('interaction-message', `Ratino: ${target.hp}/${target.maxHp} HP.`);
+      return;
+    }
+    target.defeated = true;
+    target.container.setVisible(false).disableInteractive();
+    this.playerExperience += initialCombatData.fieldRat.experience;
+    this.playerLevel = levelAfterExperience(this.playerLevel, this.playerExperience);
+    const drops: string[] = [];
+    for (const drop of initialCombatData.fieldRat.drops) {
+      if (Math.random() > drop.chance) continue;
+      const amount = rollDamage(drop.amount as [number, number]);
+      this.materials[drop.itemId] = (this.materials[drop.itemId] ?? 0) + amount;
+      drops.push(`${drop.itemId} x${amount}`);
+    }
+    this.registry.set(
+      'interaction-message',
+      `Ratino derrotado: +${initialCombatData.fieldRat.experience} XP${drops.length ? ` • ${drops.join(', ')}` : ''}.`,
+    );
+    this.selectedMonster = undefined;
+  }
+
   private nearestInteraction(): InteractiveMarker | undefined {
     return nearestInRange(this.player, this.interactiveMarkers, TILE_SIZE * 1.4);
   }
@@ -335,6 +490,16 @@ export class WorldScene extends Phaser.Scene {
     });
     const nearest = this.nearestInteraction();
     this.registry.set('interaction-prompt', nearest ? `E/ESPAÇO ou AÇÃO: ${nearest.name}` : '');
+    this.registry.set('combat-state', {
+      hp: this.playerHp,
+      maxHp: initialCombatData.player.maxHp,
+      level: this.playerLevel,
+      experience: this.playerExperience,
+      target: this.selectedMonster
+        ? { name: initialCombatData.fieldRat.name, hp: this.selectedMonster.hp, maxHp: this.selectedMonster.maxHp }
+        : null,
+      materials: this.materials,
+    });
   }
 
   private publishMinimap(): void {

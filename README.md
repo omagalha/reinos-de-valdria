@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.17 — exploração validada em navegador
+# Reinos de Valdria v4.18 — combate básico no Phaser
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,20 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- exploração Phaser v4.17: \`http://localhost:5173/modern.html\`.
+- combate básico Phaser v4.18: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.17
+## O que entrou na v4.18
+
+- Ratinos instanciados a partir de \`monster_spawns\` do TMJ;
+- seleção de alvo por toque/clique;
+- ataque do Cavaleiro com \`F\` ou botão \`ATACAR\`;
+- HP, dano, alcance, cooldown, visão, movimento, XP e drops vindos de \`catalogs.json\`;
+- IA simples de detecção, aproximação e ataque;
+- desmaio e retorno ao acampamento sem alterar o save;
+- HUD provisório de HP, nível, XP e alvo;
+- regras puras e testes de paridade numérica do combate.
+
+Mantidos da v4.17:
 
 - Playwright e Chromium para testes reais do Phaser;
 - cenários desktop e mobile horizontal;

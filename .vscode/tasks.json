@@ -26,7 +26,7 @@
       }
     },
     {
-      "label": "Valdria: iniciar exploração v4.17",
+      "label": "Valdria: iniciar combate v4.18",
       "type": "npm",
       "script": "dev:lab",
       "isBackground": true,

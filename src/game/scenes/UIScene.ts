@@ -6,6 +6,7 @@ export class UIScene extends Phaser.Scene {
   private stageText!: Phaser.GameObjects.Text;
   private promptText!: Phaser.GameObjects.Text;
   private messageText!: Phaser.GameObjects.Text;
+  private combatText!: Phaser.GameObjects.Text;
   private minimapDynamic!: Phaser.GameObjects.Graphics;
   private minimapScaleX = 1;
   private minimapScaleY = 1;
@@ -27,7 +28,7 @@ export class UIScene extends Phaser.Scene {
       })
       .setScrollFactor(0);
     this.add
-      .text(18, 38, 'WASD/setas, toque ou controle virtual • ESC volta', {
+      .text(18, 38, 'Mover: WASD/toque • Selecione Ratino • F ou ATACAR • ESC volta', {
         color: '#a6b8aa',
         fontFamily: 'Arial, sans-serif',
         fontSize: '13px',
@@ -65,6 +66,15 @@ export class UIScene extends Phaser.Scene {
       })
       .setOrigin(0.5, 0)
       .setScrollFactor(0);
+    this.combatText = this.add
+      .text(18, 82, '', {
+        color: '#f7efd8',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '13px',
+        backgroundColor: '#421c1cdd',
+        padding: { x: 8, y: 6 },
+      })
+      .setScrollFactor(0);
   }
 
   update(): void {
@@ -73,6 +83,21 @@ export class UIScene extends Phaser.Scene {
     this.stageText.setText(stage ? 'Aldeia: ' + stage.name + '\n' + stage.summary : 'Aldeia: —');
     this.promptText.setText((this.registry.get('interaction-prompt') as string | undefined) ?? '');
     this.messageText.setText((this.registry.get('interaction-message') as string | undefined) ?? '');
+    const combat = this.registry.get('combat-state') as
+      | {
+          hp: number;
+          maxHp: number;
+          level: number;
+          experience: number;
+          target: { name: string; hp: number; maxHp: number } | null;
+        }
+      | undefined;
+    this.combatText.setText(
+      combat
+        ? `HP ${combat.hp}/${combat.maxHp} • Nv. ${combat.level} • XP ${combat.experience}` +
+            (combat.target ? `\nAlvo: ${combat.target.name} ${combat.target.hp}/${combat.target.maxHp}` : '')
+        : '',
+    );
     this.updateMinimap();
   }
 

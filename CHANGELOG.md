@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.18.0 — Combate básico Phaser
+
+- adiciona Ratinos nos spawns do mapa;
+- implementa alvo, HP, dano, alcance e cooldown;
+- implementa IA de perseguição e ataque;
+- adiciona XP, nível e drops provisórios;
+- adiciona HUD e controle mobile de ataque;
+- preserva os números do Canvas por testes.
+
 ## 4.17.0 — Exploração validada em navegador
 
 - adiciona Playwright e Chromium para testes E2E;

@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Reinos de Valdria - Exploracao validada v4.17
+title Reinos de Valdria - Combate basico v4.18
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -20,7 +20,7 @@ if not exist node_modules (
   )
 )
 
-echo Iniciando a exploracao Phaser v4.17...
+echo Iniciando o combate basico Phaser v4.18...
 call npm run dev:lab
 
 endlocal

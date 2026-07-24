@@ -31,7 +31,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 140, 'EXPLORAÇÃO VALIDADA • v4.17', {
+      .text(GAME_WIDTH / 2, 140, 'COMBATE BÁSICO • v4.18', {
         color: '#a9c7ad',
         fontFamily: 'Arial, sans-serif',
         fontSize: '15px',
@@ -41,7 +41,7 @@ export class MenuScene extends Phaser.Scene {
 
     const description = this.error
       ? 'Há dados inválidos e o laboratório não pode iniciar.\n' + this.error
-      : 'Exploração em Phaser + TypeScript\nA* • minimapa • interações • teclado e toque';
+      : 'Combate inicial em Phaser + TypeScript\nRatinos • HP • dano • XP • drops';
 
     this.add
       .text(GAME_WIDTH / 2, 235, description, {
