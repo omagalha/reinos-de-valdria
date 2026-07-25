@@ -49,6 +49,12 @@ import {
   nextActiveGuardianId,
   resolveActiveGuardianId,
 } from '../systems/guardian-team';
+import {
+  gatherMaterial,
+  isResourceReady,
+  prepareVillageDeposit,
+} from '../systems/gathering';
+import { addVillageResources } from '../systems/village';
 
 type MovementKeys = Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
 
@@ -69,6 +75,10 @@ interface InteractiveMarker {
   x: number;
   y: number;
   used: boolean;
+  itemId?: string;
+  amount?: number;
+  respawnMs?: number;
+  readyAt?: number;
 }
 
 interface MonsterEntity {
@@ -480,6 +490,8 @@ export class WorldScene extends Phaser.Scene {
       ['chests', 0xb98745, 'BAÚ'],
       ['shrines', 0x86cbd1, 'SANTUÁRIO'],
       ['portals', 0x9e83d5, 'PORTAL'],
+      ['resource_nodes', 0x6fbf62, 'RECURSO'],
+      ['village_deposits', 0xd4ad54, 'DEPÓSITO'],
     ] as const;
 
     for (const [layerName, color, label] of markerStyles) {
@@ -497,7 +509,7 @@ export class WorldScene extends Phaser.Scene {
           })
           .setOrigin(0.5, 1)
           .setDepth(4);
-        if (['npcs', 'chests', 'shrines', 'portals'].includes(layerName)) {
+        if (['npcs', 'chests', 'shrines', 'portals', 'resource_nodes', 'village_deposits'].includes(layerName)) {
           this.interactiveMarkers.push({
             id: `${layerName}:${object.name}`,
             layerName,
@@ -505,6 +517,10 @@ export class WorldScene extends Phaser.Scene {
             x,
             y,
             used: false,
+            itemId: this.objectProperty(object, 'itemId'),
+            amount: this.objectNumberProperty(object, 'amount'),
+            respawnMs: this.objectNumberProperty(object, 'respawnMs'),
+            readyAt: 0,
           });
         }
       }
@@ -1311,6 +1327,50 @@ export class WorldScene extends Phaser.Scene {
       this.registry.set('interaction-message', 'Nada para interagir por perto.');
       return;
     }
+    if (marker.layerName === 'resource_nodes') {
+      if (!isResourceReady(this.time.now, marker.readyAt ?? 0)) {
+        const seconds = Math.ceil(((marker.readyAt ?? 0) - this.time.now) / 1000);
+        this.registry.set(
+          'interaction-message',
+          `Este recurso se regenera em ${Math.max(1, seconds)}s.`,
+        );
+        return;
+      }
+      const itemId = marker.itemId;
+      if (!itemId) return;
+      const amount = marker.amount ?? 1;
+      this.materials = gatherMaterial(this.materials, itemId, amount);
+      marker.readyAt = this.time.now + (marker.respawnMs ?? 15_000);
+      this.registry.set(
+        'interaction-message',
+        `Coleta concluída: +${amount} ${itemId}.`,
+      );
+      void this.persistSave();
+      return;
+    }
+    if (marker.layerName === 'village_deposits') {
+      const prepared = prepareVillageDeposit(this.materials);
+      const total = Object.values(prepared.deposit).reduce(
+        (sum, amount) => sum + (amount ?? 0),
+        0,
+      );
+      if (total === 0) {
+        this.registry.set('interaction-message', 'Você não possui recursos para depositar.');
+        return;
+      }
+      this.materials = prepared.inventory;
+      const village = addVillageResources(
+        this.sessionSave.village,
+        prepared.deposit,
+      );
+      this.sessionSave.village = { ...village, buildings: [...village.buildings] };
+      this.registry.set(
+        'interaction-message',
+        `${total} recursos enviados ao depósito da aldeia.`,
+      );
+      void this.persistSave();
+      return;
+    }
     const messages: Record<string, string> = {
       npcs: `${marker.name}: os caminhos de Valdria estão sendo reconstruídos.`,
       chests: marker.used ? 'Este baú provisório já foi aberto.' : 'Baú aberto: Poção de Campo encontrada.',
@@ -1359,6 +1419,7 @@ export class WorldScene extends Phaser.Scene {
         };
       }),
     );
+    this.registry.set('village-resources', this.sessionSave.village.resources);
     this.registry.set('combat-state', {
       hp: this.playerHp,
       maxHp: this.playerCombatData.maxHp,
@@ -1592,6 +1653,15 @@ export class WorldScene extends Phaser.Scene {
     const properties = object.properties as Array<{ name: string; value: unknown }> | undefined;
     const value = properties?.find(({ name }) => name === propertyName)?.value;
     return typeof value === 'string' ? value : undefined;
+  }
+
+  private objectNumberProperty(
+    object: Phaser.Types.Tilemaps.TiledObject,
+    propertyName: string,
+  ): number | undefined {
+    const properties = object.properties as Array<{ name: string; value: unknown }> | undefined;
+    const value = properties?.find(({ name }) => name === propertyName)?.value;
+    return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
   }
 
   private createMonsterParts(monsterId: string): Phaser.GameObjects.GameObject[] {

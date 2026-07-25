@@ -1,6 +1,6 @@
 # Roteiro de migração
 
-## Marco atual — v4.28
+## Marco atual — v4.29
 
 - aventura atual preservada;
 - fundação Phaser/TypeScript compilando;
@@ -27,6 +27,7 @@
 - Folium recebe dano, desmaia, desperta e preserva esse estado no save.
 - equipe completa, Guardião ativo e troca de companheiro persistem no save.
 - painel de equipe permite inspecionar membros e selecionar o ativo.
+- recursos dos Campos podem ser coletados e depositados no acampamento.
 
 ## Etapa 1 — adaptadores entre legado e dados — concluída na v4.14
 
@@ -61,7 +62,7 @@ Concluída quando dano, cooldown, loot, XP e vínculo têm paridade numérica.
 
 ## Etapa 5 — aldeias e novos biomas
 
-Ligar coleta aos depósitos, construir estruturas, desbloquear NPCs e contratos. Produzir Pântano Luminoso e Serras Geladas como primeiros biomas novos.
+Coleta e primeiro depósito foram ligados na v4.29. Ainda faltam construir estruturas, desbloquear NPCs e contratos. Produzir Pântano Luminoso e Serras Geladas como primeiros biomas novos.
 
 Concluída quando cada estágio muda mapa, serviços, população e missões.
 

@@ -26,7 +26,7 @@
       }
     },
     {
-      "label": "Valdria: iniciar equipe v4.28",
+      "label": "Valdria: iniciar coleta v4.29",
       "type": "npm",
       "script": "dev:lab",
       "isBackground": true,

@@ -168,6 +168,28 @@ const objectLayers = [
   objectLayer('biome_zones', 15, [
     zone('campos-de-valdria', 1, 1, 46, 30, [property('biomeId', 'campos-de-valdria')]),
   ]),
+  objectLayer('resource_nodes', 16, [
+    point('arbusto-fibra-norte', 13, 8, [
+      property('itemId', 'fibra-verde'),
+      property('amount', 2, 'int'),
+      property('respawnMs', 12000, 'int'),
+    ]),
+    point('arbusto-fibra-sul', 34, 25, [
+      property('itemId', 'fibra-verde'),
+      property('amount', 2, 'int'),
+      property('respawnMs', 12000, 'int'),
+    ]),
+    point('galhos-bosque', 31, 8, [
+      property('itemId', 'madeira-jovem'),
+      property('amount', 3, 'int'),
+      property('respawnMs', 16000, 'int'),
+    ]),
+  ]),
+  objectLayer('village_deposits', 17, [
+    point('deposito-do-acampamento', 18, 21, [
+      property('stageId', 'acampamento'),
+    ]),
+  ]),
 ];
 
 const map = {

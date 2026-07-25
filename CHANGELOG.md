@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.29.0 — Coleta e depósito da aldeia
+
+- adiciona três pontos de recurso originais ao TMJ dos Campos;
+- coleta Fibra Verde e Madeira Jovem com regeneração temporizada;
+- adiciona Madeira Jovem ao catálogo canônico;
+- converte materiais carregados em recursos do depósito da aldeia;
+- persiste inventário e recursos depositados no save v3;
+- mostra o estoque da aldeia no HUD;
+- valida IDs, quantidades e regeneração dos recursos no TMJ.
+
 ## 4.28.0 — Gerenciamento de equipe
 
 - adiciona painel de equipe dentro do Phaser;

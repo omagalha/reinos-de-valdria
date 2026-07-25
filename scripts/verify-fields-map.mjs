@@ -21,6 +21,8 @@ const objectLayers = [
   'portals',
   'village_slots',
   'biome_zones',
+  'resource_nodes',
+  'village_deposits',
 ];
 const layerByName = new Map(map.layers.map((layer) => [layer.name, layer]));
 const fail = (message) => {
@@ -71,6 +73,16 @@ validateLayerIds('shrines', 'biomeId', validIds.biome);
 validateLayerIds('portals', 'targetBiomeId', validIds.biome);
 validateLayerIds('village_slots', 'stageId', validIds.village);
 validateLayerIds('biome_zones', 'biomeId', validIds.biome);
+validateLayerIds('resource_nodes', 'itemId', validIds.item);
+validateLayerIds('village_deposits', 'stageId', validIds.village);
+for (const object of layerByName.get('resource_nodes').objects) {
+  if (!Number.isInteger(property(object, 'amount')) || property(object, 'amount') <= 0) {
+    fail(`resource_nodes.${object.name}: amount inválido`);
+  }
+  if (!Number.isInteger(property(object, 'respawnMs')) || property(object, 'respawnMs') < 1000) {
+    fail(`resource_nodes.${object.name}: respawnMs inválido`);
+  }
+}
 
 console.log(
   `Mapa verificado: ${map.width}x${map.height}, ${tileLayers.length} tile layers e ${objectLayers.length} object layers.`,

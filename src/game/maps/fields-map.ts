@@ -23,6 +23,8 @@ export const REQUIRED_OBJECT_LAYERS = [
   'portals',
   'village_slots',
   'biome_zones',
+  'resource_nodes',
+  'village_deposits',
 ] as const;
 
 interface TiledProperty {
@@ -120,6 +122,18 @@ export function validateFieldsMap(map: FieldsTiledMap, catalogs: MapCatalogs): M
   validateObjects('portals', 'targetBiomeId', ids.biome);
   validateObjects('village_slots', 'stageId', ids.village);
   validateObjects('biome_zones', 'biomeId', ids.biome);
+  validateObjects('resource_nodes', 'itemId', ids.item);
+  validateObjects('village_deposits', 'stageId', ids.village);
+  for (const object of layerByName.get('resource_nodes')?.objects ?? []) {
+    const amount = tiledProperty(object, 'amount');
+    const respawnMs = tiledProperty(object, 'respawnMs');
+    if (typeof amount !== 'number' || amount <= 0) {
+      errors.push(`resource_nodes.${object.name}: amount inválido`);
+    }
+    if (typeof respawnMs !== 'number' || respawnMs < 1_000) {
+      errors.push(`resource_nodes.${object.name}: respawnMs inválido`);
+    }
+  }
 
   return { success: errors.length === 0, errors };
 }

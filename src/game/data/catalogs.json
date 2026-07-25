@@ -1,5 +1,5 @@
 {
-  "version": "4.28.0",
+  "version": "4.29.0",
   "classes": [
     {
       "id": "cavaleiro",
@@ -195,6 +195,7 @@
     }
   ],
   "items": [
+    { "id": "madeira-jovem", "name": "Madeira Jovem", "description": "Galhos resistentes recolhidos sem derrubar as árvores dos Campos.", "category": "material", "rarity": "comum", "stackLimit": 999, "sellValue": 2, "legacy": null },
     { "id": "couro-ratino", "name": "Couro de Ratino", "description": "Couro leve aproveitado em bolsas e proteções simples.", "category": "material", "rarity": "comum", "stackLimit": 999, "sellValue": 3, "legacy": { "id": "couroRatino", "shortName": "Couro", "icon": "▣" } },
     { "id": "fibra-verde", "name": "Fibra Verde", "description": "Fibra flexível usada em cordas, tecidos e vínculos simples.", "category": "material", "rarity": "comum", "stackLimit": 999, "sellValue": 3, "legacy": { "id": "fibraVerde", "shortName": "Fibra", "icon": "♧" } },
     { "id": "pedra-sombria", "name": "Pedra Sombria", "description": "Minério de caverna que retém pequenas cargas de essência.", "category": "material", "rarity": "incomum", "stackLimit": 999, "sellValue": 8, "legacy": { "id": "pedraSombria", "shortName": "Pedra", "icon": "◆" } },

@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.28 — gerenciamento de equipe
+# Reinos de Valdria v4.29 — coleta e depósito
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,20 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- gerenciamento de equipe Phaser v4.28: \`http://localhost:5173/modern.html\`.
+- coleta e depósito Phaser v4.29: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.28
+## O que entrou na v4.29
+
+- pontos de Fibra Verde e Madeira Jovem no mapa TMJ;
+- coleta por \`E\`, espaço ou botão \`AÇÃO\`;
+- regeneração dos pontos após 12 ou 16 segundos;
+- depósito no acampamento para converter materiais em recursos;
+- persistência pelo save v3;
+- estoque da aldeia exibido no HUD;
+- validação automática dos novos objetos TMJ;
+- documentação em [coleta-deposito-v4.29.md](docs/coleta-deposito-v4.29.md).
+
+Mantidos da v4.28:
 
 - painel visual para até seis Guardiões;
 - abertura com \`T\` ou botão mobile \`EQUIPE\`;

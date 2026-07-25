@@ -9649,10 +9649,140 @@
       "visible": true,
       "x": 0,
       "y": 0
+    },
+    {
+      "draworder": "topdown",
+      "id": 16,
+      "name": "resource_nodes",
+      "objects": [
+        {
+          "height": 0,
+          "id": 14,
+          "name": "arbusto-fibra-norte",
+          "point": true,
+          "properties": [
+            {
+              "name": "itemId",
+              "type": "string",
+              "value": "fibra-verde"
+            },
+            {
+              "name": "amount",
+              "type": "int",
+              "value": 2
+            },
+            {
+              "name": "respawnMs",
+              "type": "int",
+              "value": 12000
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 0,
+          "x": 432,
+          "y": 272
+        },
+        {
+          "height": 0,
+          "id": 15,
+          "name": "arbusto-fibra-sul",
+          "point": true,
+          "properties": [
+            {
+              "name": "itemId",
+              "type": "string",
+              "value": "fibra-verde"
+            },
+            {
+              "name": "amount",
+              "type": "int",
+              "value": 2
+            },
+            {
+              "name": "respawnMs",
+              "type": "int",
+              "value": 12000
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 0,
+          "x": 1104,
+          "y": 816
+        },
+        {
+          "height": 0,
+          "id": 16,
+          "name": "galhos-bosque",
+          "point": true,
+          "properties": [
+            {
+              "name": "itemId",
+              "type": "string",
+              "value": "madeira-jovem"
+            },
+            {
+              "name": "amount",
+              "type": "int",
+              "value": 3
+            },
+            {
+              "name": "respawnMs",
+              "type": "int",
+              "value": 16000
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 0,
+          "x": 1008,
+          "y": 272
+        }
+      ],
+      "opacity": 1,
+      "type": "objectgroup",
+      "visible": true,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "draworder": "topdown",
+      "id": 17,
+      "name": "village_deposits",
+      "objects": [
+        {
+          "height": 0,
+          "id": 17,
+          "name": "deposito-do-acampamento",
+          "point": true,
+          "properties": [
+            {
+              "name": "stageId",
+              "type": "string",
+              "value": "acampamento"
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 0,
+          "x": 592,
+          "y": 688
+        }
+      ],
+      "opacity": 1,
+      "type": "objectgroup",
+      "visible": true,
+      "x": 0,
+      "y": 0
     }
   ],
   "nextlayerid": 16,
-  "nextobjectid": 14,
+  "nextobjectid": 18,
   "orientation": "orthogonal",
   "properties": [
     {

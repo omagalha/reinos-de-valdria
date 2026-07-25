@@ -105,7 +105,20 @@ export class UIScene extends Phaser.Scene {
   update(): void {
     const id = this.registry.get('village-stage') as VillageStageId | undefined;
     const stage = id ? villageStageById[id] : undefined;
-    this.stageText.setText(stage ? 'Aldeia: ' + stage.name + '\n' + stage.summary : 'Aldeia: —');
+    const resources = this.registry.get('village-resources') as
+      | { madeira: number; pedra: number; fibras: number; essencia: number; ouro: number }
+      | undefined;
+    this.stageText.setText(
+      stage
+        ? 'Aldeia: ' +
+            stage.name +
+            '\n' +
+            stage.summary +
+            (resources
+              ? `\nM ${resources.madeira} • P ${resources.pedra} • F ${resources.fibras} • E ${resources.essencia}`
+              : '')
+        : 'Aldeia: —',
+    );
     this.promptText.setText((this.registry.get('interaction-prompt') as string | undefined) ?? '');
     this.messageText.setText((this.registry.get('interaction-message') as string | undefined) ?? '');
     const combat = this.registry.get('combat-state') as
