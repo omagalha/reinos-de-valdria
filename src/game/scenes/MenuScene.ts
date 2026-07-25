@@ -5,6 +5,7 @@ import {
   playerClasses,
   type PlayerClassId,
 } from '../data/combat-data';
+import type { GameSave } from '../save/schema';
 
 interface MenuData {
   error?: string;
@@ -23,6 +24,8 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create(): void {
+    const loadedSave = this.registry.get('loaded-save') as GameSave | undefined;
+    this.selectedClass = (loadedSave?.player.classId ?? DEFAULT_PLAYER_CLASS) as PlayerClassId;
     this.drawBackdrop();
 
     this.add
@@ -37,7 +40,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 140, 'FOLIUM COMPANHEIRO • v4.24', {
+      .text(GAME_WIDTH / 2, 140, 'SAVE PERSISTENTE • v4.25', {
         color: '#a9c7ad',
         fontFamily: 'Arial, sans-serif',
         fontSize: '15px',
@@ -47,7 +50,9 @@ export class MenuScene extends Phaser.Scene {
 
     const description = this.error
       ? 'Há dados inválidos e o laboratório não pode iniciar.\n' + this.error
-      : 'Escolha sua classe para explorar e enfrentar Ratinos';
+      : loadedSave
+        ? `Save v3 carregado • Nv. ${loadedSave.player.level} • escolha a classe ou continue`
+        : 'Escolha sua classe para explorar os Campos de Valdria';
 
     this.add
       .text(GAME_WIDTH / 2, 205, description, {

@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.24 — Folium companheiro
+# Reinos de Valdria v4.25 — save persistente Phaser
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,21 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- Folium companheiro Phaser v4.24: \`http://localhost:5173/modern.html\`.
+- save persistente Phaser v4.25: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.24
+## O que entrou na v4.25
+
+- carregamento do save v3 antes do menu;
+- importação segura do save Canvas v2 sem apagá-lo;
+- restauração de classe, posição, HP, mana, nível e XP;
+- persistência de materiais e Núcleos de Essência;
+- restauração de vínculo, HP, nível e XP de Folium;
+- autosave a cada cinco segundos, na saída e após vínculo;
+- HUD com estado da gravação;
+- teste real de recarregamento pelo IndexedDB;
+- documentação em [save-persistente-v4.25.md](docs/save-persistente-v4.25.md).
+
+Mantidos da v4.24:
 
 - Folium permanece visível depois do vínculo;
 - companheiro segue o jogador e o alvo selecionado;

@@ -17,6 +17,7 @@ async function canvasPoint(page: Page, logicalX: number, logicalY: number) {
 async function startExploration(page: Page) {
   await page.goto('/modern.html');
   await expect(page.locator('#validation-status')).toHaveAttribute('data-valid', 'true');
+  await expect.poll(async () => (await snapshot(page))?.activeScenes).toContain('MenuScene');
   const start = await canvasPoint(page, 480, 405);
   await page.mouse.click(start.x, start.y);
   await expect.poll(async () => (await snapshot(page))?.activeScenes).toContain('WorldScene');
@@ -35,11 +36,13 @@ test('abre Campos de Valdria sem erros e prepara câmera/minimapa', async ({ pag
   );
   expect(state?.monsters.every(({ aiState }) => typeof aiState === 'string')).toBe(true);
   expect(state?.guardian).toMatchObject({ id: 'folium', hp: 60, maxHp: 60, bonded: false });
+  expect(['novo', 'indexeddb', 'legado-importado', 'salvo']).toContain(state?.saveStatus);
   expect(errors).toEqual([]);
 });
 
 test('seleciona Arqueiro e aplica seus atributos ao combate', async ({ page }) => {
   await page.goto('/modern.html');
+  await expect.poll(async () => (await snapshot(page))?.activeScenes).toContain('MenuScene');
   const archerCard = await canvasPoint(page, 480, 292);
   await page.mouse.click(archerCard.x, archerCard.y);
   const start = await canvasPoint(page, 480, 405);
@@ -50,6 +53,33 @@ test('seleciona Arqueiro e aplica seus atributos ao combate', async ({ page }) =
   expect(state?.combatState?.maxHp).toBe(135);
   expect(state?.combatState?.mana).toBe(50);
   expect(state?.combatState?.maxMana).toBe(50);
+});
+
+test('save v3 restaura classe e posição após recarregar', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === 'mobile-landscape', 'persistência completa é validada uma vez no desktop');
+  await page.goto('/modern.html');
+  await expect.poll(async () => (await snapshot(page))?.activeScenes).toContain('MenuScene');
+  const archerCard = await canvasPoint(page, 480, 292);
+  await page.mouse.click(archerCard.x, archerCard.y);
+  const start = await canvasPoint(page, 480, 405);
+  await page.mouse.click(start.x, start.y);
+  await expect.poll(async () => (await snapshot(page))?.combatState?.classId).toBe('arqueiro');
+  await page.keyboard.down('d');
+  await page.waitForTimeout(500);
+  await page.keyboard.up('d');
+  const savedPosition = (await snapshot(page))!.playerPosition!;
+  await expect
+    .poll(async () => (await snapshot(page))?.saveStatus, { timeout: 8_000 })
+    .toBe('salvo');
+
+  await page.reload();
+  await expect.poll(async () => (await snapshot(page))?.activeScenes).toContain('MenuScene');
+  const continueButton = await canvasPoint(page, 480, 405);
+  await page.mouse.click(continueButton.x, continueButton.y);
+  await expect.poll(async () => (await snapshot(page))?.combatState?.classId).toBe('arqueiro');
+  const restored = (await snapshot(page))!.playerPosition!;
+  expect(restored.x).toBeCloseTo(savedPosition.x, 0);
+  expect(restored.y).toBeCloseTo(savedPosition.y, 0);
 });
 
 test('movimento diagonal pelo teclado altera os dois eixos', async ({ page }, testInfo) => {

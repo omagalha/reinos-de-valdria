@@ -108,6 +108,7 @@ export class UIScene extends Phaser.Scene {
           } | null;
         }
       | undefined;
+    const saveStatus = (this.registry.get('save-status') as string | undefined) ?? '—';
     this.combatText.setText(
       combat
         ? `${combat.className} • HP ${combat.hp}/${combat.maxHp} • MP ${combat.mana}/${combat.maxMana}` +
@@ -119,7 +120,8 @@ export class UIScene extends Phaser.Scene {
             `\nNúcleos: ${combat.essenceCores} • Equipe: ${combat.guardianTeam.length}` +
             (combat.activeGuardian
               ? ` • Ativo: ${combat.activeGuardian.name} Nv.${combat.activeGuardian.level}`
-              : '')
+              : '') +
+            `\nSave v3: ${saveStatus}`
         : '',
     );
     this.updateMinimap();

@@ -12,7 +12,7 @@ if (status) {
 }
 
 if (!validation.success) {
-  throw new Error('Os dados da fundação v4.24 são inválidos: ' + validation.errors.join('; '));
+  throw new Error('Os dados da fundação v4.25 são inválidos: ' + validation.errors.join('; '));
 }
 
 const game = new Phaser.Game(createGameConfig());
@@ -29,6 +29,7 @@ if (import.meta.env.DEV) {
       interactionPrompt: (game.registry.get('interaction-prompt') as string | undefined) ?? '',
       interactionMessage: (game.registry.get('interaction-message') as string | undefined) ?? '',
       selectedPlayerClass: (game.registry.get('selected-player-class') as string | undefined) ?? '',
+      saveStatus: (game.registry.get('save-status') as string | undefined) ?? '',
       combatState: game.registry.get('combat-state') as
         | {
             classId: string;
@@ -80,6 +81,7 @@ declare global {
         interactionPrompt: string;
         interactionMessage: string;
         selectedPlayerClass: string;
+        saveStatus: string;
         combatState?: {
           classId: string;
           hp: number;

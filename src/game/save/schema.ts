@@ -85,7 +85,7 @@ export function createEmptySave(now = new Date().toISOString()): GameSave {
       maxHp: 190,
       mp: 35,
       maxMp: 35,
-      position: { x: 22, y: 30, regionId: 'campos-de-valdria' },
+      position: { x: 20.5, y: 21.5, regionId: 'campos-de-valdria' },
     },
     inventory: {
       gold: 0,

@@ -66,3 +66,5 @@ export class SaveRepository {
     this.database.close();
   }
 }
+
+export const saveRepository = new SaveRepository();

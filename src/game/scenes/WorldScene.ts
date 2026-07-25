@@ -36,6 +36,9 @@ import {
 } from '../data/guardian-data';
 import { attemptGuardianBond, weakenGuardianHp } from '../systems/bonding';
 import { addGuardianExperience, shouldFoliumHeal } from '../systems/companion';
+import { createEmptySave, type GameSave } from '../save/schema';
+import { mergeRuntimeSave } from '../save/runtime';
+import { saveRepository } from '../save/storage';
 
 type MovementKeys = Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
 
@@ -113,20 +116,52 @@ export class WorldScene extends Phaser.Scene {
   private nextPlayerAttackAt = 0;
   private nextPlayerSkillAt = 0;
   private materials: Record<string, number> = {};
+  private sessionSave: GameSave = createEmptySave();
+  private saveInFlight = false;
 
   constructor() {
     super('WorldScene');
   }
 
   create(): void {
+    this.monsters = [];
+    this.interactiveMarkers = [];
+    this.selectedMonster = undefined;
+    this.selectedGuardian = undefined;
+    this.guardian = undefined;
+    this.sessionSave =
+      (this.registry.get('loaded-save') as GameSave | undefined) ?? createEmptySave();
     this.playerCombatData = getPlayerCombatData(this.registry.get('selected-player-class') as string | undefined);
-    this.playerHp = this.playerCombatData.maxHp;
-    this.playerMana = this.playerCombatData.maxMp;
+    const sameClass = this.sessionSave.player.classId === this.playerCombatData.classId;
+    this.playerHp = sameClass
+      ? Phaser.Math.Clamp(this.sessionSave.player.hp, 1, this.playerCombatData.maxHp)
+      : this.playerCombatData.maxHp;
+    this.playerMana = sameClass
+      ? Phaser.Math.Clamp(this.sessionSave.player.mp, 0, this.playerCombatData.maxMp)
+      : this.playerCombatData.maxMp;
+    this.playerLevel = this.sessionSave.player.level;
+    this.playerExperience = this.sessionSave.player.experience;
+    this.materials = { ...this.sessionSave.inventory.materials };
+    this.essenceCores =
+      this.sessionSave.guardians.length === 0
+        ? Math.max(3, this.sessionSave.inventory.cores)
+        : this.sessionSave.inventory.cores;
+    this.bondedGuardianIds = this.sessionSave.guardians.map(({ speciesId }) => speciesId);
     this.createMap();
     const spawn = this.requireObject('player_spawn');
-    this.player = this.createPlayer(spawn.x ?? TILE_SIZE, spawn.y ?? TILE_SIZE);
+    const savedPosition = this.sessionSave.player.position;
+    const savedX = savedPosition.x * TILE_SIZE;
+    const savedY = savedPosition.y * TILE_SIZE;
+    const canRestorePosition =
+      savedPosition.regionId === 'campos-de-valdria' &&
+      !this.isPositionBlocked(savedX, savedY, PLAYER_RADIUS);
+    this.player = this.createPlayer(
+      canRestorePosition ? savedX : (spawn.x ?? TILE_SIZE),
+      canRestorePosition ? savedY : (spawn.y ?? TILE_SIZE),
+    );
     this.createMonsters();
     this.createGuardian();
+    this.restoreGuardianFromSave();
     this.target.set(this.player.x, this.player.y);
     this.renderMapMarkers();
     this.configureCamera();
@@ -138,6 +173,12 @@ export class WorldScene extends Phaser.Scene {
     this.scene.launch('UIScene');
     this.registry.set('village-stage', 'acampamento');
     this.registry.set('current-biome', 'campos-de-valdria');
+    this.time.addEvent({
+      delay: 5_000,
+      loop: true,
+      callback: () => void this.persistSave(),
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => void this.persistSave());
   }
 
   update(time: number, delta: number): void {
@@ -206,6 +247,7 @@ export class WorldScene extends Phaser.Scene {
       right: Phaser.Input.Keyboard.KeyCodes.D,
     }) as MovementKeys;
     this.input.keyboard.on('keydown-ESC', () => {
+      void this.persistSave();
       this.scene.stop('UIScene');
       this.scene.start('MenuScene');
     });
@@ -518,6 +560,31 @@ export class WorldScene extends Phaser.Scene {
       this.selectedGuardian = this.guardian;
       this.registry.set('interaction-message', `${combat.name} selvagem selecionado.`);
     });
+  }
+
+  private restoreGuardianFromSave(): void {
+    const savedGuardian = this.sessionSave.guardians.find(
+      ({ speciesId }) => speciesId === 'folium',
+    );
+    const guardian = this.guardian;
+    if (!savedGuardian || !guardian) return;
+    guardian.bonded = true;
+    guardian.level = savedGuardian.level;
+    guardian.experience = savedGuardian.experience;
+    guardian.maxHp = savedGuardian.maxHp;
+    guardian.hp = Phaser.Math.Clamp(savedGuardian.hp, 1, savedGuardian.maxHp);
+    guardian.nextMoveAt = this.time.now + 500;
+    guardian.nextAttackAt = this.time.now + 900;
+    guardian.nextSkillAt = this.time.now + 2_500;
+    guardian.container
+      .disableInteractive()
+      .setPosition(this.player.x - TILE_SIZE, this.player.y)
+      .setScale(0.72)
+      .setAlpha(0.8);
+    this.registry.set(
+      'interaction-message',
+      `${guardian.combat.name} retornou como seu Guardião ativo.`,
+    );
   }
 
   private updateCombat(time: number): void {
@@ -833,8 +900,9 @@ export class WorldScene extends Phaser.Scene {
     });
     this.registry.set(
       'interaction-message',
-      `VÍNCULO REALIZADO! ${guardian.combat.name} agora faz parte da equipe provisória.`,
+      `VÍNCULO REALIZADO! ${guardian.combat.name} entrou na equipe e será salvo.`,
     );
+    void this.persistSave();
   }
 
   private launchSkillProjectile(target: MonsterEntity): void {
@@ -1106,6 +1174,54 @@ export class WorldScene extends Phaser.Scene {
           }
         : null,
     );
+  }
+
+  private async persistSave(): Promise<void> {
+    if (this.saveInFlight || !this.player) return;
+    this.saveInFlight = true;
+    this.registry.set('save-status', 'salvando');
+    try {
+      const guardian =
+        this.guardian?.bonded
+          ? {
+              instanceId: 'folium-1',
+              speciesId: this.guardian.combat.speciesId,
+              level: this.guardian.level,
+              experience: this.guardian.experience,
+              hp: this.guardian.hp,
+              maxHp: this.guardian.maxHp,
+            }
+          : undefined;
+      const merged = mergeRuntimeSave(this.sessionSave, {
+        classId: this.playerCombatData.classId,
+        level: this.playerLevel,
+        experience: this.playerExperience,
+        hp: this.playerHp,
+        maxHp: this.playerCombatData.maxHp,
+        mp: Math.floor(this.playerMana),
+        maxMp: this.playerCombatData.maxMp,
+        position: {
+          x: this.player.x / TILE_SIZE,
+          y: this.player.y / TILE_SIZE,
+          regionId: 'campos-de-valdria',
+        },
+        cores: this.essenceCores,
+        materials: this.materials,
+        guardian,
+      });
+      this.sessionSave = await saveRepository.write(merged);
+      this.registry.set('loaded-save', this.sessionSave);
+      this.registry.set('save-status', 'salvo');
+      this.registry.set('last-save-at', this.sessionSave.updatedAt);
+    } catch (error) {
+      this.registry.set('save-status', 'erro');
+      this.registry.set(
+        'save-error',
+        error instanceof Error ? error.message : 'Falha desconhecida ao salvar.',
+      );
+    } finally {
+      this.saveInFlight = false;
+    }
   }
 
   private publishMinimap(): void {

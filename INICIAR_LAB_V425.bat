@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Reinos de Valdria - Folium companheiro v4.24
+title Reinos de Valdria - Save persistente v4.25
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -20,7 +20,7 @@ if not exist node_modules (
   )
 )
 
-echo Iniciando Folium companheiro Phaser v4.24...
+echo Iniciando save persistente Phaser v4.25...
 call npm run dev:lab
 
 endlocal

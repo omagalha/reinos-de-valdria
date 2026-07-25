@@ -15,7 +15,7 @@ Não abra nem edite os arquivos diretamente dentro do ZIP.
 
 - [Visual Studio Code](https://code.visualstudio.com/).
 
-### Recomendado para a v4.24 completa
+### Recomendado para a v4.25 completa
 
 - [Node.js LTS](https://nodejs.org/) versão 20.19 ou superior.
 
@@ -34,7 +34,7 @@ O VS Code edita o projeto; o Node instala Phaser, TypeScript e as ferramentas de
 ### Opção mais simples no Windows
 
 1. Feche apenas o terminal antigo, se houver.
-2. Dê dois cliques em \`INICIAR_JOGO.bat\` para a aventura atual ou em \`INICIAR_LAB_V424.bat\` para abrir o combate Phaser.
+2. Dê dois cliques em \`INICIAR_JOGO.bat\` para a aventura atual ou em \`INICIAR_LAB_V425.bat\` para abrir o Phaser com save persistente.
 3. Na primeira execução, espere a instalação dos pacotes terminar.
 4. O navegador abrirá automaticamente.
 5. Deixe a janela preta do terminal aberta enquanto estiver jogando ou editando.
@@ -53,7 +53,7 @@ Clique no endereço exibido no terminal, normalmente \`http://localhost:5173/\`.
 ## 5. Abrir cada versão
 
 - aventura completa atual: \`http://localhost:5173/\`;
-- Folium companheiro Phaser v4.24: \`http://localhost:5173/modern.html\`.
+- save persistente Phaser v4.25: \`http://localhost:5173/modern.html\`.
 
 No Phaser, escolha uma classe, use WASD/setas, toque no destino ou arraste o controle virtual. Use \`F\`/\`ATACAR\` e \`Q\`/\`HABILIDADE\` no combate. Para Folium, enfraqueça-o, aproxime-se e use \`V\` ou \`VÍNCULO\`. Use \`E\`, espaço ou \`AÇÃO\` perto de outros marcadores.
 

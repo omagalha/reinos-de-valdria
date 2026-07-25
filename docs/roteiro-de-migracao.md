@@ -1,6 +1,6 @@
 # Roteiro de migração
 
-## Marco atual — v4.24
+## Marco atual — v4.25
 
 - aventura atual preservada;
 - fundação Phaser/TypeScript compilando;
@@ -23,6 +23,7 @@
 - IA por estados, território, respawn e separação entre entidades.
 - primeiro encontro, enfraquecimento e vínculo provisório com Folium.
 - Folium ativo seguindo, combatendo, ganhando XP e usando Raiz Vital.
+- save v3 ativo no Phaser com importação segura do save Canvas v2.
 
 ## Etapa 1 — adaptadores entre legado e dados — concluída na v4.14
 
@@ -51,7 +52,7 @@ Concluída quando os fluxos atuais passam tanto no cliente legado quanto no Phas
 
 ## Etapa 4 — combate e Guardiões — iniciada na v4.18
 
-Seleção de alvo, HP, IA, XP, classes, habilidades e espécies entraram entre v4.18 e v4.22. Encontro e vínculo com Folium entraram na v4.23. Companheiro ativo, ataque assistido, XP, nível e Raiz Vital entraram na v4.24. Ainda faltam persistência, dano recebido, desmaio, troca de equipe e outras espécies vinculáveis.
+Seleção de alvo, HP, IA, XP, classes, habilidades e espécies entraram entre v4.18 e v4.22. Encontro e vínculo com Folium entraram na v4.23; companheiro ativo e progressão na v4.24. Persistência do jogador e Folium em Dexie, incluindo importação v2, entrou na v4.25. Ainda faltam dano recebido, desmaio, troca de equipe e outras espécies vinculáveis.
 
 Concluída quando dano, cooldown, loot, XP e vínculo têm paridade numérica.
 

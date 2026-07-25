@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.25.0 — Save persistente Phaser
+
+- conecta Boot e World ao `SaveRepository` Dexie existente;
+- carrega save v3 ou importa o Canvas v2 sem apagá-lo;
+- restaura classe, posição, HP, mana, nível, XP, materiais e núcleos;
+- restaura vínculo, nível, XP e HP de Folium;
+- adiciona autosave a cada cinco segundos, ao sair e após o vínculo;
+- preserva missões, aldeia e flags ainda não controladas pelo laboratório;
+- adiciona teste E2E de recarregamento real pelo IndexedDB.
+
 ## 4.24.0 — Folium companheiro
 
 - mantém Folium visível e seguindo o jogador após o vínculo;
