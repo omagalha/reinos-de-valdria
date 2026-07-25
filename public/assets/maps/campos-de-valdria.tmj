@@ -9604,6 +9604,11 @@
               "name": "stageId",
               "type": "string",
               "value": "acampamento"
+            },
+            {
+              "name": "buildingId",
+              "type": "string",
+              "value": "abrigo-de-madeira"
             }
           ],
           "rotation": 0,

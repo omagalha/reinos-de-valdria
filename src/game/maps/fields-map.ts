@@ -124,6 +124,11 @@ export function validateFieldsMap(map: FieldsTiledMap, catalogs: MapCatalogs): M
   validateObjects('biome_zones', 'biomeId', ids.biome);
   validateObjects('resource_nodes', 'itemId', ids.item);
   validateObjects('village_deposits', 'stageId', ids.village);
+  for (const object of layerByName.get('village_slots')?.objects ?? []) {
+    if (typeof tiledProperty(object, 'buildingId') !== 'string') {
+      errors.push(`village_slots.${object.name}: buildingId inválido`);
+    }
+  }
   for (const object of layerByName.get('resource_nodes')?.objects ?? []) {
     const amount = tiledProperty(object, 'amount');
     const respawnMs = tiledProperty(object, 'respawnMs');

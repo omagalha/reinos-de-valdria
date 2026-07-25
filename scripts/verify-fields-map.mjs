@@ -75,6 +75,11 @@ validateLayerIds('village_slots', 'stageId', validIds.village);
 validateLayerIds('biome_zones', 'biomeId', validIds.biome);
 validateLayerIds('resource_nodes', 'itemId', validIds.item);
 validateLayerIds('village_deposits', 'stageId', validIds.village);
+for (const object of layerByName.get('village_slots').objects) {
+  if (property(object, 'buildingId') !== 'abrigo-de-madeira') {
+    fail(`village_slots.${object.name}: buildingId inválido`);
+  }
+}
 for (const object of layerByName.get('resource_nodes').objects) {
   if (!Number.isInteger(property(object, 'amount')) || property(object, 'amount') <= 0) {
     fail(`resource_nodes.${object.name}: amount inválido`);

@@ -21,6 +21,15 @@ export interface UpgradeCheck {
 
 const resourceKeys = ['madeira', 'pedra', 'fibras', 'essencia', 'ouro'] as const;
 
+export const villageBuildingBlueprints = {
+  'abrigo-de-madeira': {
+    name: 'Abrigo de Madeira',
+    cost: { madeira: 9, pedra: 0, fibras: 4, essencia: 0, ouro: 0 },
+  },
+} as const;
+
+export type VillageBuildingId = keyof typeof villageBuildingBlueprints;
+
 export function createVillageState(): VillageState {
   return {
     stageId: 'acampamento',
@@ -78,5 +87,40 @@ export function upgradeVillage(state: VillageState): VillageState {
     resources,
     population: Math.max(state.population, Math.ceil(nextStage.populationLimit * 0.35)),
     buildings: [...new Set([...state.buildings, ...nextStage.unlocks])],
+  };
+}
+
+export function missingBuildingResources(
+  state: VillageState,
+  buildingId: VillageBuildingId,
+): Partial<VillageResources> {
+  const cost = villageBuildingBlueprints[buildingId].cost;
+  return Object.fromEntries(
+    resourceKeys.flatMap((key) => {
+      const amount = Math.max(0, cost[key] - state.resources[key]);
+      return amount > 0 ? [[key, amount]] : [];
+    }),
+  ) as Partial<VillageResources>;
+}
+
+export function buildVillageStructure(
+  state: VillageState,
+  buildingId: VillageBuildingId,
+): VillageState {
+  if (state.buildings.includes(buildingId)) return state;
+  const missing = missingBuildingResources(state, buildingId);
+  if (Object.keys(missing).length > 0) {
+    throw new Error('Ainda faltam recursos para construir esta estrutura.');
+  }
+  const cost = villageBuildingBlueprints[buildingId].cost;
+  return {
+    ...state,
+    resources: VillageResourcesSchema.parse(
+      Object.fromEntries(
+        resourceKeys.map((key) => [key, state.resources[key] - cost[key]]),
+      ),
+    ),
+    population: state.population + 1,
+    buildings: [...state.buildings, buildingId],
   };
 }

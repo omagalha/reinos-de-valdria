@@ -54,7 +54,13 @@ import {
   isResourceReady,
   prepareVillageDeposit,
 } from '../systems/gathering';
-import { addVillageResources } from '../systems/village';
+import {
+  addVillageResources,
+  buildVillageStructure,
+  missingBuildingResources,
+  villageBuildingBlueprints,
+  type VillageBuildingId,
+} from '../systems/village';
 
 type MovementKeys = Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
 
@@ -79,6 +85,8 @@ interface InteractiveMarker {
   amount?: number;
   respawnMs?: number;
   readyAt?: number;
+  buildingId?: VillageBuildingId;
+  built?: boolean;
 }
 
 interface MonsterEntity {
@@ -196,7 +204,7 @@ export class WorldScene extends Phaser.Scene {
     this.game.events.on('guardian-team-select', this.selectGuardianFromTeam, this);
 
     this.scene.launch('UIScene');
-    this.registry.set('village-stage', 'acampamento');
+    this.registry.set('village-stage', this.sessionSave.village.stageId);
     this.registry.set('current-biome', 'campos-de-valdria');
     this.time.addEvent({
       delay: 5_000,
@@ -492,15 +500,25 @@ export class WorldScene extends Phaser.Scene {
       ['portals', 0x9e83d5, 'PORTAL'],
       ['resource_nodes', 0x6fbf62, 'RECURSO'],
       ['village_deposits', 0xd4ad54, 'DEPÓSITO'],
+      ['village_slots', 0xe5c06b, 'OBRA'],
     ] as const;
 
     for (const [layerName, color, label] of markerStyles) {
       for (const object of this.map.getObjectLayer(layerName)?.objects ?? []) {
-        const x = object.x ?? 0;
-        const y = object.y ?? 0;
+        const x = (object.x ?? 0) + (object.width ?? 0) / 2;
+        const y = (object.y ?? 0) + (object.height ?? 0) / 2;
+        const buildingId = this.objectProperty(object, 'buildingId') as
+          | VillageBuildingId
+          | undefined;
+        const built = Boolean(
+          buildingId && this.sessionSave.village.buildings.includes(buildingId),
+        );
+        if (built && buildingId === 'abrigo-de-madeira') {
+          this.renderBuiltShelter(x, y);
+        }
         this.add.circle(x, y, 9, color, 0.88).setDepth(4).setStrokeStyle(2, 0x17251d);
         this.add
-          .text(x, y - 17, label, {
+          .text(x, y - 17, built ? 'CONSTRUÍDO' : label, {
             color: '#f7efd8',
             fontFamily: 'Arial, sans-serif',
             fontSize: '9px',
@@ -509,7 +527,7 @@ export class WorldScene extends Phaser.Scene {
           })
           .setOrigin(0.5, 1)
           .setDepth(4);
-        if (['npcs', 'chests', 'shrines', 'portals', 'resource_nodes', 'village_deposits'].includes(layerName)) {
+        if (['npcs', 'chests', 'shrines', 'portals', 'resource_nodes', 'village_deposits', 'village_slots'].includes(layerName)) {
           this.interactiveMarkers.push({
             id: `${layerName}:${object.name}`,
             layerName,
@@ -521,10 +539,37 @@ export class WorldScene extends Phaser.Scene {
             amount: this.objectNumberProperty(object, 'amount'),
             respawnMs: this.objectNumberProperty(object, 'respawnMs'),
             readyAt: 0,
+            buildingId,
+            built,
           });
         }
       }
     }
+  }
+
+  private renderBuiltShelter(x: number, y: number): void {
+    const wall = this.add
+      .rectangle(x, y + 4, 58, 42, 0x9b6a3c)
+      .setStrokeStyle(3, 0x4b3020)
+      .setDepth(5);
+    const roof = this.add
+      .triangle(x, y - 34, 0, 38, 34, 0, 68, 38, 0x6f3c2d)
+      .setStrokeStyle(3, 0x3c241a)
+      .setDepth(6);
+    const door = this.add.rectangle(x, y + 12, 14, 26, 0x432b20).setDepth(6);
+    this.add
+      .text(x, y + 32, 'ABRIGO', {
+        color: '#f7efd8',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '9px',
+        backgroundColor: '#142019cc',
+        padding: { x: 3, y: 2 },
+      })
+      .setOrigin(0.5, 0)
+      .setDepth(6);
+    void wall;
+    void roof;
+    void door;
   }
 
   private createMonsters(): void {
@@ -1367,6 +1412,35 @@ export class WorldScene extends Phaser.Scene {
       this.registry.set(
         'interaction-message',
         `${total} recursos enviados ao depósito da aldeia.`,
+      );
+      void this.persistSave();
+      return;
+    }
+    if (marker.layerName === 'village_slots') {
+      const buildingId = marker.buildingId;
+      if (!buildingId) return;
+      if (marker.built || this.sessionSave.village.buildings.includes(buildingId)) {
+        this.registry.set(
+          'interaction-message',
+          `${villageBuildingBlueprints[buildingId].name} já foi construído.`,
+        );
+        return;
+      }
+      const missing = missingBuildingResources(this.sessionSave.village, buildingId);
+      if (Object.keys(missing).length > 0) {
+        const details = Object.entries(missing)
+          .map(([resource, amount]) => `${amount} ${resource}`)
+          .join(', ');
+        this.registry.set('interaction-message', `Faltam: ${details}.`);
+        return;
+      }
+      const village = buildVillageStructure(this.sessionSave.village, buildingId);
+      this.sessionSave.village = { ...village, buildings: [...village.buildings] };
+      marker.built = true;
+      this.renderBuiltShelter(marker.x, marker.y);
+      this.registry.set(
+        'interaction-message',
+        `${villageBuildingBlueprints[buildingId].name} concluído! População: ${village.population}.`,
       );
       void this.persistSave();
       return;

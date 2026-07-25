@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Reinos de Valdria - Coleta e Deposito v4.29
+title Reinos de Valdria - Primeira Construcao v4.30
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -20,7 +20,7 @@ if not exist node_modules (
   )
 )
 
-echo Iniciando coleta e deposito Phaser v4.29...
+echo Iniciando primeira construcao Phaser v4.30...
 call npm run dev:lab
 
 endlocal

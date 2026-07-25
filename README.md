@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.29 — coleta e depósito
+# Reinos de Valdria v4.30 — primeira construção
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,20 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- coleta e depósito Phaser v4.29: \`http://localhost:5173/modern.html\`.
+- primeira construção Phaser v4.30: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.29
+## O que entrou na v4.30
+
+- primeiro ponto de obra ligado ao \`village_slots\` do TMJ;
+- planta Abrigo de Madeira;
+- custo de 9 madeiras e 4 fibras;
+- aviso detalhado dos recursos ausentes;
+- desconto do estoque e aumento de população;
+- abrigo provisório visível no mapa;
+- restauração da estrutura pelo save v3;
+- documentação em [primeira-construcao-v4.30.md](docs/primeira-construcao-v4.30.md).
+
+Mantidos da v4.29:
 
 - pontos de Fibra Verde e Madeira Jovem no mapa TMJ;
 - coleta por \`E\`, espaço ou botão \`AÇÃO\`;

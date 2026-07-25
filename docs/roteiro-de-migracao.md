@@ -1,6 +1,6 @@
 # Roteiro de migração
 
-## Marco atual — v4.29
+## Marco atual — v4.30
 
 - aventura atual preservada;
 - fundação Phaser/TypeScript compilando;
@@ -28,6 +28,7 @@
 - equipe completa, Guardião ativo e troca de companheiro persistem no save.
 - painel de equipe permite inspecionar membros e selecionar o ativo.
 - recursos dos Campos podem ser coletados e depositados no acampamento.
+- primeiro abrigo pode ser construído e restaurado pelo save.
 
 ## Etapa 1 — adaptadores entre legado e dados — concluída na v4.14
 
@@ -62,7 +63,7 @@ Concluída quando dano, cooldown, loot, XP e vínculo têm paridade numérica.
 
 ## Etapa 5 — aldeias e novos biomas
 
-Coleta e primeiro depósito foram ligados na v4.29. Ainda faltam construir estruturas, desbloquear NPCs e contratos. Produzir Pântano Luminoso e Serras Geladas como primeiros biomas novos.
+Coleta e primeiro depósito foram ligados na v4.29; o primeiro abrigo entrou na v4.30. Ainda faltam evolução visual completa da aldeia, outras estruturas, NPCs e contratos. Produzir Pântano Luminoso e Serras Geladas como primeiros biomas novos.
 
 Concluída quando cada estágio muda mapa, serviços, população e missões.
 

@@ -1,8 +1,10 @@
 import { describe, expect, test } from 'vitest';
 import {
   addVillageResources,
+  buildVillageStructure,
   checkVillageUpgrade,
   createVillageState,
+  missingBuildingResources,
   upgradeVillage,
 } from '../../src/game/systems/village';
 
@@ -46,5 +48,25 @@ describe('progressão da aldeia', () => {
 
   test('impede evolução antecipada', () => {
     expect(() => upgradeVillage(createVillageState())).toThrow(/faltam recursos/i);
+  });
+
+  test('constrói o primeiro abrigo, desconta recursos e aumenta a população', () => {
+    const ready = addVillageResources(createVillageState(), {
+      madeira: 12,
+      fibras: 6,
+    });
+    expect(missingBuildingResources(ready, 'abrigo-de-madeira')).toEqual({});
+    const built = buildVillageStructure(ready, 'abrigo-de-madeira');
+    expect(built.resources.madeira).toBe(3);
+    expect(built.resources.fibras).toBe(2);
+    expect(built.population).toBe(4);
+    expect(built.buildings).toContain('abrigo-de-madeira');
+    expect(buildVillageStructure(built, 'abrigo-de-madeira')).toBe(built);
+  });
+
+  test('informa o custo que ainda falta para a construção', () => {
+    expect(
+      missingBuildingResources(createVillageState(), 'abrigo-de-madeira'),
+    ).toEqual({ madeira: 9, fibras: 4 });
   });
 });

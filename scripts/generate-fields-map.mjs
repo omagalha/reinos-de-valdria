@@ -163,7 +163,10 @@ const objectLayers = [
     point('saida-bosque', 3, 19, [property('targetBiomeId', 'bosque-sussurrante')]),
   ]),
   objectLayer('village_slots', 14, [
-    zone('nucleo-aldeia', 16, 16, 11, 8, [property('stageId', 'acampamento')]),
+    zone('nucleo-aldeia', 16, 16, 11, 8, [
+      property('stageId', 'acampamento'),
+      property('buildingId', 'abrigo-de-madeira'),
+    ]),
   ]),
   objectLayer('biome_zones', 15, [
     zone('campos-de-valdria', 1, 1, 46, 30, [property('biomeId', 'campos-de-valdria')]),

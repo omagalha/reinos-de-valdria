@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.30.0 — Primeira construção
+
+- transforma o `village_slots` em ponto interativo de obra;
+- adiciona a planta original Abrigo de Madeira;
+- exige 9 madeiras e 4 fibras do depósito;
+- informa exatamente os recursos ausentes;
+- desconta custos, aumenta a população e persiste a estrutura;
+- renderiza um abrigo provisório no mapa após a construção;
+- restaura visualmente a obra a partir do save v3.
+
 ## 4.29.0 — Coleta e depósito da aldeia
 
 - adiciona três pontos de recurso originais ao TMJ dos Campos;
