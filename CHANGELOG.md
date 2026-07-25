@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.27.0 — Equipe de Guardiões
+
+- persiste todos os Guardiões da equipe no save v3;
+- restaura a espécie definida por `activeGuardianId`;
+- permite trocar o companheiro com `R` ou controle mobile;
+- evita selecionar membros desmaiados quando há outro disponível;
+- preserva HP, nível, XP e tempo de recuperação por instância;
+- reconhece espécies migradas usando o catálogo canônico;
+- mantém compatibilidade com o campo `guardian` das integrações anteriores.
+
 ## 4.26.0 — Dano e recuperação do Guardião
 
 - permite que monstros escolham Folium como alvo quando ele estiver mais perto;

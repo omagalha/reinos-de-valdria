@@ -23,6 +23,8 @@ export interface RuntimeSaveState {
   cores: number;
   materials: Record<string, number>;
   guardian?: RuntimeGuardianState;
+  guardians?: RuntimeGuardianState[];
+  activeGuardianId?: string | null;
 }
 
 export function mergeRuntimeSave(
@@ -30,17 +32,19 @@ export function mergeRuntimeSave(
   runtime: RuntimeSaveState,
   now = new Date().toISOString(),
 ): GameSave {
-  const guardians = runtime.guardian
+  const runtimeGuardians = runtime.guardians ?? (runtime.guardian ? [runtime.guardian] : []);
+  const guardians = runtimeGuardians.length
     ? [
         ...base.guardians.filter(
-          ({ instanceId }) => instanceId !== runtime.guardian?.instanceId,
+          ({ instanceId }) =>
+            !runtimeGuardians.some((guardian) => guardian.instanceId === instanceId),
         ),
-        {
-          ...runtime.guardian,
+        ...runtimeGuardians.map((guardian) => ({
+          ...guardian,
           nickname: null,
-          fainted: runtime.guardian.fainted ?? false,
-          reviveRemainingMs: runtime.guardian.reviveRemainingMs ?? 0,
-        },
+          fainted: guardian.fainted ?? false,
+          reviveRemainingMs: guardian.reviveRemainingMs ?? 0,
+        })),
       ]
     : base.guardians;
   return GameSaveSchema.parse({
@@ -63,6 +67,9 @@ export function mergeRuntimeSave(
       materials: runtime.materials,
     },
     guardians,
-    activeGuardianId: runtime.guardian?.instanceId ?? base.activeGuardianId,
+    activeGuardianId:
+      runtime.activeGuardianId ??
+      runtime.guardian?.instanceId ??
+      base.activeGuardianId,
   });
 }

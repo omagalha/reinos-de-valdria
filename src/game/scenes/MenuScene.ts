@@ -40,7 +40,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(GAME_WIDTH / 2, 140, 'DESMAIO E RECUPERAÇÃO • v4.26', {
+      .text(GAME_WIDTH / 2, 140, 'EQUIPE DE GUARDIÕES • v4.27', {
         color: '#a9c7ad',
         fontFamily: 'Arial, sans-serif',
         fontSize: '15px',

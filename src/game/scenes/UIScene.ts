@@ -28,7 +28,7 @@ export class UIScene extends Phaser.Scene {
       })
       .setScrollFactor(0);
     this.add
-      .text(18, 38, 'Mover • F: atacar • Q: habilidade • V: vínculo • ESC volta', {
+      .text(18, 38, 'Mover • F: atacar • Q: habilidade • V: vínculo • R: trocar • ESC volta', {
         color: '#a6b8aa',
         fontFamily: 'Arial, sans-serif',
         fontSize: '13px',

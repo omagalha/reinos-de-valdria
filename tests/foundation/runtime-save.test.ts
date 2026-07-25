@@ -70,4 +70,45 @@ describe('save da sessão Phaser', () => {
     expect(save.quests).toEqual(base.quests);
     expect(save.village).toEqual(base.village);
   });
+
+  test('persiste a equipe completa e o Guardião ativo', () => {
+    const base = createEmptySave('2026-01-01T00:00:00.000Z');
+    const save = mergeRuntimeSave(base, {
+      classId: 'cavaleiro',
+      level: 1,
+      experience: 0,
+      hp: 190,
+      maxHp: 190,
+      mp: 35,
+      maxMp: 35,
+      position: { x: 20, y: 21, regionId: 'campos-de-valdria' },
+      cores: 1,
+      materials: {},
+      guardians: [
+        {
+          instanceId: 'folium-1',
+          speciesId: 'folium',
+          level: 2,
+          experience: 10,
+          hp: 65,
+          maxHp: 72,
+        },
+        {
+          instanceId: 'aquari-2',
+          speciesId: 'aquari',
+          level: 3,
+          experience: 20,
+          hp: 70,
+          maxHp: 80,
+        },
+      ],
+      activeGuardianId: 'aquari-2',
+    });
+
+    expect(save.guardians.map(({ speciesId }) => speciesId)).toEqual([
+      'folium',
+      'aquari',
+    ]);
+    expect(save.activeGuardianId).toBe('aquari-2');
+  });
 });

@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.26 — dano e recuperação do Guardião
+# Reinos de Valdria v4.27 — equipe de Guardiões
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,20 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- combate do Guardião Phaser v4.26: \`http://localhost:5173/modern.html\`.
+- equipe de Guardiões Phaser v4.27: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.26
+## O que entrou na v4.27
+
+- equipe completa preservada no save v3;
+- restauração pelo \`activeGuardianId\`, sem limitar o Phaser a Folium;
+- troca circular do companheiro ativo com \`R\` ou botão \`TROCAR\`;
+- Guardiões desmaiados são ignorados quando existe outro membro disponível;
+- HP, nível, XP e recuperação permanecem individuais durante a troca;
+- espécies migradas passam a ser reconhecidas pelo catálogo;
+- regras puras e testes da seleção de equipe;
+- documentação em [equipe-guardioes-v4.27.md](docs/equipe-guardioes-v4.27.md).
+
+Mantidos da v4.26:
 
 - monstros podem escolher Folium como alvo;
 - dano ao companheiro usando números dos catálogos;

@@ -45,6 +45,10 @@ import {
 import { createEmptySave, type GameSave } from '../save/schema';
 import { mergeRuntimeSave } from '../save/runtime';
 import { saveRepository } from '../save/storage';
+import {
+  nextActiveGuardianId,
+  resolveActiveGuardianId,
+} from '../systems/guardian-team';
 
 type MovementKeys = Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
 
@@ -85,6 +89,7 @@ interface MonsterEntity {
 
 interface GuardianEntity {
   id: string;
+  instanceId: string;
   combat: GuardianCombatData;
   container: Phaser.GameObjects.Container;
   hp: number;
@@ -264,6 +269,7 @@ export class WorldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-SPACE', () => this.interact());
     this.input.keyboard.on('keydown-F', () => this.playerAttack(this.time.now));
     this.input.keyboard.on('keydown-Q', () => this.usePlayerSkill(this.time.now));
+    this.input.keyboard.on('keydown-R', () => this.switchActiveGuardian());
     this.input.keyboard.on('keydown-V', () => this.attemptBond());
   }
 
@@ -350,6 +356,20 @@ export class WorldScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setInteractive({ useHandCursor: true });
     bond.on('pointerdown', () => this.attemptBond());
+    const switchGuardian = this.add
+      .text(GAME_WIDTH - 570, GAME_HEIGHT - 92, 'TROCAR', {
+        color: '#f7efd8',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '13px',
+        fontStyle: 'bold',
+        backgroundColor: '#2d716a',
+        padding: { x: 14, y: 17 },
+      })
+      .setOrigin(0.5)
+      .setDepth(101)
+      .setScrollFactor(0)
+      .setInteractive({ useHandCursor: true });
+    switchGuardian.on('pointerdown', () => this.switchActiveGuardian());
   }
 
   private updateJoystick(pointer: Phaser.Input.Pointer): void {
@@ -526,7 +546,16 @@ export class WorldScene extends Phaser.Scene {
 
   private createGuardian(): void {
     const object = this.requireObject('guardian_spawns');
-    const combat = getGuardianCombatData(this.objectProperty(object, 'catalogId'));
+    const activeId = resolveActiveGuardianId(
+      this.sessionSave.guardians,
+      this.sessionSave.activeGuardianId,
+    );
+    const savedActive = this.sessionSave.guardians.find(
+      ({ instanceId }) => instanceId === activeId,
+    );
+    const combat = getGuardianCombatData(
+      savedActive?.speciesId ?? this.objectProperty(object, 'catalogId'),
+    );
     const x = object.x ?? TILE_SIZE;
     const y = object.y ?? TILE_SIZE;
     const aura = this.add.circle(0, 0, 22, 0x68d788, 0.18);
@@ -552,6 +581,7 @@ export class WorldScene extends Phaser.Scene {
     });
     this.guardian = {
       id: `${combat.speciesId}:${object.name}`,
+      instanceId: savedActive?.instanceId ?? `${combat.speciesId}-1`,
       combat,
       container,
       hp: combat.maxHp,
@@ -574,11 +604,17 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private restoreGuardianFromSave(): void {
+    const activeId = resolveActiveGuardianId(
+      this.sessionSave.guardians,
+      this.sessionSave.activeGuardianId,
+    );
     const savedGuardian = this.sessionSave.guardians.find(
-      ({ speciesId }) => speciesId === 'folium',
+      ({ instanceId }) => instanceId === activeId,
     );
     const guardian = this.guardian;
     if (!savedGuardian || !guardian) return;
+    guardian.instanceId = savedGuardian.instanceId;
+    guardian.combat = getGuardianCombatData(savedGuardian.speciesId);
     guardian.bonded = true;
     guardian.level = savedGuardian.level;
     guardian.experience = savedGuardian.experience;
@@ -602,6 +638,77 @@ export class WorldScene extends Phaser.Scene {
       'interaction-message',
       `${guardian.combat.name} retornou como seu Guardião ativo.`,
     );
+  }
+
+  private snapshotActiveGuardian(): void {
+    const guardian = this.guardian;
+    if (!guardian?.bonded) return;
+    const snapshot: GameSave['guardians'][number] = {
+      instanceId: guardian.instanceId,
+      speciesId: guardian.combat.speciesId,
+      nickname: null,
+      level: guardian.level,
+      experience: guardian.experience,
+      hp: guardian.hp,
+      maxHp: guardian.maxHp,
+      fainted: guardian.fainted,
+      reviveRemainingMs: guardian.fainted
+        ? Math.max(0, guardian.reviveAt - this.time.now)
+        : 0,
+    };
+    const existingIndex = this.sessionSave.guardians.findIndex(
+      ({ instanceId }) => instanceId === guardian.instanceId,
+    );
+    if (existingIndex >= 0) {
+      this.sessionSave.guardians[existingIndex] = snapshot;
+    } else {
+      this.sessionSave.guardians.push(snapshot);
+    }
+  }
+
+  private switchActiveGuardian(): void {
+    if (!this.guardian?.bonded || this.sessionSave.guardians.length < 2) {
+      this.registry.set(
+        'interaction-message',
+        'Vincule pelo menos dois Guardiões para trocar o companheiro ativo.',
+      );
+      return;
+    }
+    this.snapshotActiveGuardian();
+    const nextId = nextActiveGuardianId(
+      this.sessionSave.guardians,
+      this.guardian.instanceId,
+    );
+    const saved = this.sessionSave.guardians.find(
+      ({ instanceId }) => instanceId === nextId,
+    );
+    if (!saved || saved.instanceId === this.guardian.instanceId) {
+      this.registry.set(
+        'interaction-message',
+        'Nenhum outro Guardião desperto está disponível.',
+      );
+      return;
+    }
+    this.sessionSave.activeGuardianId = saved.instanceId;
+    this.guardian.instanceId = saved.instanceId;
+    this.guardian.combat = getGuardianCombatData(saved.speciesId);
+    this.guardian.level = saved.level;
+    this.guardian.experience = saved.experience;
+    this.guardian.maxHp = saved.maxHp;
+    this.guardian.hp = saved.hp;
+    this.guardian.fainted = saved.fainted;
+    this.guardian.reviveAt = this.time.now + saved.reviveRemainingMs;
+    this.guardian.nextMoveAt = this.time.now + 300;
+    this.guardian.nextAttackAt = this.time.now + 700;
+    this.guardian.nextSkillAt = this.time.now + 1_500;
+    this.guardian.container
+      .setPosition(this.player.x - TILE_SIZE, this.player.y)
+      .setAlpha(saved.fainted ? 0.25 : 0.8);
+    this.registry.set(
+      'interaction-message',
+      `${this.guardian.combat.name} agora é o Guardião ativo.`,
+    );
+    void this.persistSave();
   }
 
   private updateCombat(time: number): void {
@@ -926,6 +1033,7 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     guardian.bonded = true;
+    guardian.instanceId = `${guardian.combat.speciesId}-${this.sessionSave.guardians.length + 1}`;
     guardian.fainted = false;
     guardian.reviveAt = 0;
     guardian.nextMoveAt = this.time.now + 500;
@@ -1115,6 +1223,7 @@ export class WorldScene extends Phaser.Scene {
 
     if (
       time >= guardian.nextSkillAt &&
+      guardian.combat.primarySkill.effect === 'cura' &&
       shouldFoliumHeal(
         this.playerHp,
         this.playerCombatData.maxHp,
@@ -1265,21 +1374,20 @@ export class WorldScene extends Phaser.Scene {
     this.saveInFlight = true;
     this.registry.set('save-status', 'salvando');
     try {
-      const guardian =
+      this.snapshotActiveGuardian();
+      const guardians =
         this.guardian?.bonded
-          ? {
-              instanceId: 'folium-1',
-              speciesId: this.guardian.combat.speciesId,
-              level: this.guardian.level,
-              experience: this.guardian.experience,
-              hp: this.guardian.hp,
-              maxHp: this.guardian.maxHp,
-              fainted: this.guardian.fainted,
-              reviveRemainingMs: this.guardian.fainted
-                ? Math.max(0, this.guardian.reviveAt - this.time.now)
-                : 0,
-            }
-          : undefined;
+          ? this.sessionSave.guardians.map((saved) => ({
+              instanceId: saved.instanceId,
+              speciesId: saved.speciesId,
+              level: saved.level,
+              experience: saved.experience,
+              hp: saved.hp,
+              maxHp: saved.maxHp,
+              fainted: saved.fainted,
+              reviveRemainingMs: saved.reviveRemainingMs,
+            }))
+          : [];
       const merged = mergeRuntimeSave(this.sessionSave, {
         classId: this.playerCombatData.classId,
         level: this.playerLevel,
@@ -1295,7 +1403,10 @@ export class WorldScene extends Phaser.Scene {
         },
         cores: this.essenceCores,
         materials: this.materials,
-        guardian,
+        guardians,
+        activeGuardianId: this.guardian?.bonded
+          ? this.guardian.instanceId
+          : this.sessionSave.activeGuardianId,
       });
       this.sessionSave = await saveRepository.write(merged);
       this.registry.set('loaded-save', this.sessionSave);
