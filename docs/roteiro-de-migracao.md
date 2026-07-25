@@ -1,6 +1,6 @@
 # Roteiro de migração
 
-## Marco atual — v4.27
+## Marco atual — v4.28
 
 - aventura atual preservada;
 - fundação Phaser/TypeScript compilando;
@@ -26,6 +26,7 @@
 - save v3 ativo no Phaser com importação segura do save Canvas v2.
 - Folium recebe dano, desmaia, desperta e preserva esse estado no save.
 - equipe completa, Guardião ativo e troca de companheiro persistem no save.
+- painel de equipe permite inspecionar membros e selecionar o ativo.
 
 ## Etapa 1 — adaptadores entre legado e dados — concluída na v4.14
 
@@ -54,7 +55,7 @@ Concluída quando os fluxos atuais passam tanto no cliente legado quanto no Phas
 
 ## Etapa 4 — combate e Guardiões — iniciada na v4.18
 
-Seleção de alvo, HP, IA, classes e habilidades entraram entre v4.18 e v4.22. Vínculo e companheiro Folium entraram na v4.23/v4.24; persistência em Dexie na v4.25. Dano recebido e recuperação entraram na v4.26. Equipe persistente, restauração genérica e troca do ativo entraram na v4.27. Ainda faltam encontros de outras espécies nos seus biomas e uma tela de gerenciamento.
+Seleção de alvo, HP, IA, classes e habilidades entraram entre v4.18 e v4.22. Vínculo e companheiro Folium entraram na v4.23/v4.24; persistência em Dexie na v4.25. Dano recebido e recuperação entraram na v4.26. Equipe persistente e troca entraram na v4.27; o painel de gerenciamento entrou na v4.28. Ainda faltam encontros de outras espécies nos seus biomas e ações de ordenar, renomear ou dispensar membros.
 
 Concluída quando dano, cooldown, loot, XP e vínculo têm paridade numérica.
 

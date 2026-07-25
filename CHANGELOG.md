@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.28.0 — Gerenciamento de equipe
+
+- adiciona painel de equipe dentro do Phaser;
+- abre pelo teclado com `T` ou pelo botão mobile `EQUIPE`;
+- lista nome, elemento, nível, XP, HP e estado de até seis membros;
+- permite escolher diretamente o Guardião ativo;
+- bloqueia a ativação de membros desmaiados;
+- pausa a exploração enquanto o painel está aberto;
+- adiciona diagnóstico e teste Playwright do fluxo.
+
 ## 4.27.0 — Equipe de Guardiões
 
 - persiste todos os Guardiões da equipe no save v3;

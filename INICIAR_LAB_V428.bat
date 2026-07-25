@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Reinos de Valdria - Equipe de Guardioes v4.27
+title Reinos de Valdria - Gerenciamento de Equipe v4.28
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -20,7 +20,7 @@ if not exist node_modules (
   )
 )
 
-echo Iniciando equipe de Guardioes Phaser v4.27...
+echo Iniciando gerenciamento de equipe Phaser v4.28...
 call npm run dev:lab
 
 endlocal

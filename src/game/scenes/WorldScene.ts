@@ -183,6 +183,7 @@ export class WorldScene extends Phaser.Scene {
     this.configurePointerControls();
     this.createMobileControl();
     this.publishMinimap();
+    this.game.events.on('guardian-team-select', this.selectGuardianFromTeam, this);
 
     this.scene.launch('UIScene');
     this.registry.set('village-stage', 'acampamento');
@@ -192,7 +193,10 @@ export class WorldScene extends Phaser.Scene {
       loop: true,
       callback: () => void this.persistSave(),
     });
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => void this.persistSave());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.events.off('guardian-team-select', this.selectGuardianFromTeam, this);
+      void this.persistSave();
+    });
   }
 
   update(time: number, delta: number): void {
@@ -357,7 +361,7 @@ export class WorldScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
     bond.on('pointerdown', () => this.attemptBond());
     const switchGuardian = this.add
-      .text(GAME_WIDTH - 570, GAME_HEIGHT - 92, 'TROCAR', {
+      .text(GAME_WIDTH - 570, GAME_HEIGHT - 92, 'EQUIPE', {
         color: '#f7efd8',
         fontFamily: 'Arial, sans-serif',
         fontSize: '13px',
@@ -369,7 +373,7 @@ export class WorldScene extends Phaser.Scene {
       .setDepth(101)
       .setScrollFactor(0)
       .setInteractive({ useHandCursor: true });
-    switchGuardian.on('pointerdown', () => this.switchActiveGuardian());
+    switchGuardian.on('pointerdown', () => this.game.events.emit('guardian-team-toggle'));
   }
 
   private updateJoystick(pointer: Phaser.Input.Pointer): void {
@@ -679,16 +683,47 @@ export class WorldScene extends Phaser.Scene {
       this.sessionSave.guardians,
       this.guardian.instanceId,
     );
-    const saved = this.sessionSave.guardians.find(
-      ({ instanceId }) => instanceId === nextId,
-    );
-    if (!saved || saved.instanceId === this.guardian.instanceId) {
+    if (!nextId || nextId === this.guardian.instanceId) {
       this.registry.set(
         'interaction-message',
         'Nenhum outro Guardião desperto está disponível.',
       );
       return;
     }
+    this.activateGuardian(nextId);
+  }
+
+  private selectGuardianFromTeam(instanceId: string): void {
+    this.snapshotActiveGuardian();
+    const saved = this.sessionSave.guardians.find(
+      (member) => member.instanceId === instanceId,
+    );
+    if (!saved) {
+      this.registry.set('interaction-message', 'Guardião não encontrado na equipe.');
+      return;
+    }
+    if (saved.fainted) {
+      this.registry.set(
+        'interaction-message',
+        `${getGuardianCombatData(saved.speciesId).name} está desmaiado e não pode ser ativado.`,
+      );
+      return;
+    }
+    if (saved.instanceId === this.guardian?.instanceId) {
+      this.registry.set(
+        'interaction-message',
+        `${getGuardianCombatData(saved.speciesId).name} já está ativo.`,
+      );
+      return;
+    }
+    this.activateGuardian(instanceId);
+  }
+
+  private activateGuardian(instanceId: string): void {
+    const saved = this.sessionSave.guardians.find(
+      (member) => member.instanceId === instanceId,
+    );
+    if (!saved || !this.guardian) return;
     this.sessionSave.activeGuardianId = saved.instanceId;
     this.guardian.instanceId = saved.instanceId;
     this.guardian.combat = getGuardianCombatData(saved.speciesId);
@@ -1297,6 +1332,33 @@ export class WorldScene extends Phaser.Scene {
     });
     const nearest = this.nearestInteraction();
     this.registry.set('interaction-prompt', nearest ? `E/ESPAÇO ou AÇÃO: ${nearest.name}` : '');
+    this.registry.set(
+      'guardian-team-state',
+      this.sessionSave.guardians.map((saved) => {
+        const isActive = saved.instanceId === this.guardian?.instanceId;
+        const combat = isActive && this.guardian
+          ? this.guardian.combat
+          : getGuardianCombatData(saved.speciesId);
+        return {
+          instanceId: saved.instanceId,
+          speciesId: combat.speciesId,
+          name: combat.name,
+          element: combat.element,
+          level: isActive && this.guardian ? this.guardian.level : saved.level,
+          experience: isActive && this.guardian
+            ? this.guardian.experience
+            : saved.experience,
+          hp: isActive && this.guardian ? this.guardian.hp : saved.hp,
+          maxHp: isActive && this.guardian ? this.guardian.maxHp : saved.maxHp,
+          fainted: isActive && this.guardian ? this.guardian.fainted : saved.fainted,
+          reviveInMs:
+            isActive && this.guardian?.fainted
+              ? Math.max(0, this.guardian.reviveAt - this.time.now)
+              : saved.reviveRemainingMs,
+          active: isActive,
+        };
+      }),
+    );
     this.registry.set('combat-state', {
       hp: this.playerHp,
       maxHp: this.playerCombatData.maxHp,

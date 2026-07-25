@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.27 — equipe de Guardiões
+# Reinos de Valdria v4.28 — gerenciamento de equipe
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,20 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- equipe de Guardiões Phaser v4.27: \`http://localhost:5173/modern.html\`.
+- gerenciamento de equipe Phaser v4.28: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.27
+## O que entrou na v4.28
+
+- painel visual para até seis Guardiões;
+- abertura com \`T\` ou botão mobile \`EQUIPE\`;
+- nome, elemento, nível, XP, HP e estado de cada membro;
+- seleção direta do Guardião ativo por toque ou mouse;
+- bloqueio de seleção para membros desmaiados;
+- pausa segura da exploração enquanto o painel está aberto;
+- teste Playwright do novo fluxo;
+- documentação em [gerenciamento-equipe-v4.28.md](docs/gerenciamento-equipe-v4.28.md).
+
+Mantidos da v4.27:
 
 - equipe completa preservada no save v3;
 - restauração pelo \`activeGuardianId\`, sem limitar o Phaser a Folium;

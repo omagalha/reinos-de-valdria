@@ -2,6 +2,20 @@ import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../dimensions';
 import { villageStageById, type VillageStageId } from '../data';
 
+interface GuardianTeamView {
+  instanceId: string;
+  speciesId: string;
+  name: string;
+  element: string;
+  level: number;
+  experience: number;
+  hp: number;
+  maxHp: number;
+  fainted: boolean;
+  reviveInMs: number;
+  active: boolean;
+}
+
 export class UIScene extends Phaser.Scene {
   private stageText!: Phaser.GameObjects.Text;
   private promptText!: Phaser.GameObjects.Text;
@@ -12,6 +26,9 @@ export class UIScene extends Phaser.Scene {
   private minimapScaleY = 1;
   private readonly minimapX = GAME_WIDTH - 202;
   private readonly minimapY = 82;
+  private teamPanel!: Phaser.GameObjects.Container;
+  private teamContent!: Phaser.GameObjects.Container;
+  private teamSignature = '';
 
   constructor() {
     super('UIScene');
@@ -28,7 +45,7 @@ export class UIScene extends Phaser.Scene {
       })
       .setScrollFactor(0);
     this.add
-      .text(18, 38, 'Mover • F: atacar • Q: habilidade • V: vínculo • R: trocar • ESC volta', {
+      .text(18, 38, 'Mover • F: atacar • Q: habilidade • V: vínculo • R: trocar • T: equipe', {
         color: '#a6b8aa',
         fontFamily: 'Arial, sans-serif',
         fontSize: '13px',
@@ -75,6 +92,14 @@ export class UIScene extends Phaser.Scene {
         padding: { x: 8, y: 6 },
       })
       .setScrollFactor(0);
+    this.createTeamPanel();
+    this.game.events.on('guardian-team-toggle', this.toggleTeamPanel, this);
+    this.input.keyboard?.on('keydown-T', this.toggleTeamPanel, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.events.off('guardian-team-toggle', this.toggleTeamPanel, this);
+      this.input.keyboard?.off('keydown-T', this.toggleTeamPanel, this);
+      if (this.scene.isPaused('WorldScene')) this.scene.resume('WorldScene');
+    });
   }
 
   update(): void {
@@ -129,6 +154,121 @@ export class UIScene extends Phaser.Scene {
         : '',
     );
     this.updateMinimap();
+    if (this.teamPanel.visible) this.renderTeamPanel();
+  }
+
+  private createTeamPanel(): void {
+    const shade = this.add
+      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x020806, 0.76)
+      .setOrigin(0)
+      .setInteractive();
+    const panel = this.add
+      .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 760, 470, 0x12231a, 0.98)
+      .setStrokeStyle(3, 0xd4ad54);
+    const title = this.add
+      .text(GAME_WIDTH / 2 - 340, GAME_HEIGHT / 2 - 205, 'EQUIPE DE GUARDIÕES', {
+        color: '#f0c96a',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '24px',
+        fontStyle: 'bold',
+      });
+    const hint = this.add
+      .text(GAME_WIDTH / 2 - 340, GAME_HEIGHT / 2 - 170, 'Escolha um membro desperto para torná-lo ativo.', {
+        color: '#b8c8bb',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '14px',
+      });
+    const close = this.add
+      .text(GAME_WIDTH / 2 + 330, GAME_HEIGHT / 2 - 204, 'FECHAR', {
+        color: '#f7efd8',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '14px',
+        fontStyle: 'bold',
+        backgroundColor: '#7b3732',
+        padding: { x: 12, y: 8 },
+      })
+      .setOrigin(1, 0)
+      .setInteractive({ useHandCursor: true });
+    close.on('pointerdown', () => this.toggleTeamPanel());
+    this.teamContent = this.add.container(0, 0);
+    this.teamPanel = this.add
+      .container(0, 0, [shade, panel, title, hint, close, this.teamContent])
+      .setDepth(500)
+      .setScrollFactor(0)
+      .setVisible(false);
+  }
+
+  private toggleTeamPanel(): void {
+    this.setTeamPanelVisible(!this.teamPanel.visible);
+  }
+
+  private setTeamPanelVisible(visible: boolean): void {
+    this.teamPanel.setVisible(visible);
+    this.registry.set('guardian-team-open', visible);
+    if (visible) {
+      this.scene.pause('WorldScene');
+      this.teamSignature = '';
+      this.renderTeamPanel();
+    } else if (this.scene.isPaused('WorldScene')) {
+      this.scene.resume('WorldScene');
+    }
+  }
+
+  private renderTeamPanel(): void {
+    const team =
+      (this.registry.get('guardian-team-state') as GuardianTeamView[] | undefined) ?? [];
+    const signature = JSON.stringify(team);
+    if (signature === this.teamSignature) return;
+    this.teamSignature = signature;
+    this.teamContent.removeAll(true);
+
+    if (team.length === 0) {
+      this.teamContent.add(
+        this.add
+          .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'Nenhum Guardião vinculado.', {
+            color: '#d8e0d4',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '18px',
+          })
+          .setOrigin(0.5),
+      );
+      return;
+    }
+
+    team.slice(0, 6).forEach((member, index) => {
+      const column = index % 2;
+      const row = Math.floor(index / 2);
+      const x = GAME_WIDTH / 2 - 340 + column * 350;
+      const y = GAME_HEIGHT / 2 - 125 + row * 104;
+      const status = member.fainted
+        ? `DESMAIADO • ${Math.ceil(member.reviveInMs / 1000)}s`
+        : member.active
+          ? 'ATIVO'
+          : 'DISPONÍVEL';
+      const card = this.add
+        .text(
+          x,
+          y,
+          `${member.name} • ${member.element.toUpperCase()}\n` +
+            `Nv.${member.level} • XP ${member.experience}\n` +
+            `HP ${member.hp}/${member.maxHp} • ${status}`,
+          {
+            color: member.fainted ? '#988f89' : '#f7efd8',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '14px',
+            fontStyle: member.active ? 'bold' : 'normal',
+            backgroundColor: member.active ? '#315f45' : '#24362b',
+            fixedWidth: 325,
+            padding: { x: 14, y: 10 },
+          },
+        )
+        .setInteractive({ useHandCursor: !member.fainted });
+      card.on('pointerdown', () => {
+        this.game.events.emit('guardian-team-select', member.instanceId);
+        if (!member.fainted) this.setTeamPanelVisible(false);
+      });
+      this.teamContent.add(card);
+    });
   }
 
   private drawMinimap(): void {

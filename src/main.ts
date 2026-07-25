@@ -12,7 +12,7 @@ if (status) {
 }
 
 if (!validation.success) {
-  throw new Error('Os dados da fundação v4.27 são inválidos: ' + validation.errors.join('; '));
+  throw new Error('Os dados da fundação v4.28 são inválidos: ' + validation.errors.join('; '));
 }
 
 const game = new Phaser.Game(createGameConfig());
@@ -30,6 +30,16 @@ if (import.meta.env.DEV) {
       interactionMessage: (game.registry.get('interaction-message') as string | undefined) ?? '',
       selectedPlayerClass: (game.registry.get('selected-player-class') as string | undefined) ?? '',
       saveStatus: (game.registry.get('save-status') as string | undefined) ?? '',
+      guardianTeamOpen: Boolean(game.registry.get('guardian-team-open')),
+      guardianTeam:
+        (game.registry.get('guardian-team-state') as
+          | Array<{
+              instanceId: string;
+              speciesId: string;
+              active: boolean;
+              fainted: boolean;
+            }>
+          | undefined) ?? [],
       combatState: game.registry.get('combat-state') as
         | {
             classId: string;
@@ -89,6 +99,13 @@ declare global {
         interactionMessage: string;
         selectedPlayerClass: string;
         saveStatus: string;
+        guardianTeamOpen: boolean;
+        guardianTeam: Array<{
+          instanceId: string;
+          speciesId: string;
+          active: boolean;
+          fainted: boolean;
+        }>;
         combatState?: {
           classId: string;
           hp: number;

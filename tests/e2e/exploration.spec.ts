@@ -115,3 +115,11 @@ test('viewport mobile mantém o canvas dentro da tela', async ({ page }, testInf
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(844);
 });
+
+test('abre e fecha a tela de equipe pelo teclado', async ({ page }) => {
+  await startExploration(page);
+  await page.keyboard.press('t');
+  await expect.poll(async () => (await snapshot(page))?.guardianTeamOpen).toBe(true);
+  await page.keyboard.press('t');
+  await expect.poll(async () => (await snapshot(page))?.guardianTeamOpen).toBe(false);
+});
