@@ -34,3 +34,15 @@ export const shouldFoliumHeal = (
 ): boolean =>
   inCombat &&
   (playerHp < playerMaxHp * 0.75 || guardianHp < guardianMaxHp * 0.75);
+
+export const applyGuardianDamage = (hp: number, damage: number): number =>
+  Math.max(0, hp - Math.max(0, Math.floor(damage)));
+
+export const isGuardianReviveReady = (
+  fainted: boolean,
+  now: number,
+  reviveAt: number,
+): boolean => fainted && now >= reviveAt;
+
+export const guardianReviveHp = (maxHp: number): number =>
+  Math.max(1, Math.floor(maxHp / 2));

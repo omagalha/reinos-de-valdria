@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Reinos de Valdria - Save persistente v4.25
+title Reinos de Valdria - Desmaio de Guardiao v4.26
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -20,7 +20,7 @@ if not exist node_modules (
   )
 )
 
-echo Iniciando save persistente Phaser v4.25...
+echo Iniciando combate de Guardiao Phaser v4.26...
 call npm run dev:lab
 
 endlocal

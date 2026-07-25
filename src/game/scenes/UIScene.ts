@@ -105,6 +105,8 @@ export class UIScene extends Phaser.Scene {
             maxHp: number;
             level: number;
             experience: number;
+            fainted: boolean;
+            reviveInMs: number;
           } | null;
         }
       | undefined;
@@ -119,7 +121,9 @@ export class UIScene extends Phaser.Scene {
               : '') +
             `\nNúcleos: ${combat.essenceCores} • Equipe: ${combat.guardianTeam.length}` +
             (combat.activeGuardian
-              ? ` • Ativo: ${combat.activeGuardian.name} Nv.${combat.activeGuardian.level}`
+              ? combat.activeGuardian.fainted
+                ? ` • ${combat.activeGuardian.name}: desmaiado (${Math.ceil(combat.activeGuardian.reviveInMs / 1000)}s)`
+                : ` • Ativo: ${combat.activeGuardian.name} Nv.${combat.activeGuardian.level}`
               : '') +
             `\nSave v3: ${saveStatus}`
         : '',

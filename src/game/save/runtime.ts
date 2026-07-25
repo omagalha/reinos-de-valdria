@@ -7,6 +7,8 @@ export interface RuntimeGuardianState {
   experience: number;
   hp: number;
   maxHp: number;
+  fainted?: boolean;
+  reviveRemainingMs?: number;
 }
 
 export interface RuntimeSaveState {
@@ -33,7 +35,12 @@ export function mergeRuntimeSave(
         ...base.guardians.filter(
           ({ instanceId }) => instanceId !== runtime.guardian?.instanceId,
         ),
-        { ...runtime.guardian, nickname: null },
+        {
+          ...runtime.guardian,
+          nickname: null,
+          fainted: runtime.guardian.fainted ?? false,
+          reviveRemainingMs: runtime.guardian.reviveRemainingMs ?? 0,
+        },
       ]
     : base.guardians;
   return GameSaveSchema.parse({

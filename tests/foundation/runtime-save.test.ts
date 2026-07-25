@@ -25,6 +25,8 @@ describe('save da sessão Phaser', () => {
           experience: 18,
           hp: 66,
           maxHp: 73,
+          fainted: true,
+          reviveRemainingMs: 12_000,
         },
       },
       '2026-07-25T10:05:00.000Z',
@@ -44,6 +46,8 @@ describe('save da sessão Phaser', () => {
       instanceId: 'folium-1',
       speciesId: 'folium',
       level: 2,
+      fainted: true,
+      reviveRemainingMs: 12_000,
     });
     expect(save.activeGuardianId).toBe('folium-1');
   });

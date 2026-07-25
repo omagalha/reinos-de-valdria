@@ -1,4 +1,4 @@
-# Reinos de Valdria v4.25 — save persistente Phaser
+# Reinos de Valdria v4.26 — dano e recuperação do Guardião
 
 Esta versão mantém a aventura atual totalmente jogável e acrescenta uma fundação moderna para a migração gradual.
 
@@ -39,9 +39,21 @@ npm run dev
 Use os endereços:
 
 - jogo atual: \`http://localhost:5173/\`;
-- save persistente Phaser v4.25: \`http://localhost:5173/modern.html\`.
+- combate do Guardião Phaser v4.26: \`http://localhost:5173/modern.html\`.
 
-## O que entrou na v4.25
+## O que entrou na v4.26
+
+- monstros podem escolher Folium como alvo;
+- dano ao companheiro usando números dos catálogos;
+- desmaio de Folium ao chegar a 0 HP;
+- pausa de movimento, ataque e cura durante o desmaio;
+- despertar após 20 segundos com metade do HP;
+- contador no HUD;
+- persistência de desmaio e tempo restante;
+- compatibilidade com saves v3 anteriores;
+- documentação em [desmaio-guardiao-v4.26.md](docs/desmaio-guardiao-v4.26.md).
+
+Mantidos da v4.25:
 
 - carregamento do save v3 antes do menu;
 - importação segura do save Canvas v2 sem apagá-lo;

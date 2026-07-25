@@ -12,7 +12,7 @@ if (status) {
 }
 
 if (!validation.success) {
-  throw new Error('Os dados da fundação v4.25 são inválidos: ' + validation.errors.join('; '));
+  throw new Error('Os dados da fundação v4.26 são inválidos: ' + validation.errors.join('; '));
 }
 
 const game = new Phaser.Game(createGameConfig());
@@ -41,7 +41,12 @@ if (import.meta.env.DEV) {
             guardian: { name: string; hp: number; maxHp: number } | null;
             essenceCores: number;
             guardianTeam: string[];
-            activeGuardian: { name: string; level: number } | null;
+            activeGuardian: {
+              name: string;
+              level: number;
+              fainted: boolean;
+              reviveInMs: number;
+            } | null;
           }
         | undefined,
       monsters:
@@ -63,6 +68,8 @@ if (import.meta.env.DEV) {
             experience: number;
             x: number;
             y: number;
+            fainted: boolean;
+            reviveInMs: number;
           }
         | null
         | undefined,
@@ -92,7 +99,12 @@ declare global {
           guardian: { name: string; hp: number; maxHp: number } | null;
           essenceCores: number;
           guardianTeam: string[];
-          activeGuardian: { name: string; level: number } | null;
+          activeGuardian: {
+            name: string;
+            level: number;
+            fainted: boolean;
+            reviveInMs: number;
+          } | null;
         };
         monsters: Array<{
           id: string;
@@ -109,6 +121,8 @@ declare global {
           experience: number;
           x: number;
           y: number;
+          fainted: boolean;
+          reviveInMs: number;
         } | null;
       };
     };

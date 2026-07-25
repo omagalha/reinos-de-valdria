@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.26.0 — Dano e recuperação do Guardião
+
+- permite que monstros escolham Folium como alvo quando ele estiver mais perto;
+- aplica dano do catálogo ao jogador ou companheiro escolhido;
+- faz Folium desmaiar ao chegar a 0 HP;
+- interrompe movimento, ataque e cura durante o desmaio;
+- desperta Folium após 20 segundos com metade do HP;
+- persiste desmaio e tempo restante no save v3;
+- mantém compatibilidade automática com saves v3 anteriores.
+
 ## 4.25.0 — Save persistente Phaser
 
 - conecta Boot e World ao `SaveRepository` Dexie existente;

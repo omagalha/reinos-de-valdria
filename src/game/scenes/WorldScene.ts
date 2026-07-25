@@ -35,7 +35,13 @@ import {
   type GuardianCombatData,
 } from '../data/guardian-data';
 import { attemptGuardianBond, weakenGuardianHp } from '../systems/bonding';
-import { addGuardianExperience, shouldFoliumHeal } from '../systems/companion';
+import {
+  addGuardianExperience,
+  applyGuardianDamage,
+  guardianReviveHp,
+  isGuardianReviveReady,
+  shouldFoliumHeal,
+} from '../systems/companion';
 import { createEmptySave, type GameSave } from '../save/schema';
 import { mergeRuntimeSave } from '../save/runtime';
 import { saveRepository } from '../save/storage';
@@ -47,6 +53,7 @@ const TOUCH_SPEED = 150;
 const PLAYER_RADIUS = 10;
 const MONSTER_RADIUS = 12;
 const MONSTER_RESPAWN_MS = 8_000;
+const GUARDIAN_REVIVE_MS = 20_000;
 const MONSTER_LEASH_TILES = 7;
 const JOYSTICK_CENTER = { x: 102, y: GAME_HEIGHT - 96 };
 const JOYSTICK_RADIUS = 58;
@@ -88,6 +95,8 @@ interface GuardianEntity {
   nextMoveAt: number;
   nextAttackAt: number;
   nextSkillAt: number;
+  fainted: boolean;
+  reviveAt: number;
 }
 
 export class WorldScene extends Phaser.Scene {
@@ -553,6 +562,8 @@ export class WorldScene extends Phaser.Scene {
       nextMoveAt: 0,
       nextAttackAt: 0,
       nextSkillAt: 0,
+      fainted: false,
+      reviveAt: 0,
     };
     container.on('pointerdown', () => {
       if (!this.guardian || this.guardian.bonded) return;
@@ -572,7 +583,13 @@ export class WorldScene extends Phaser.Scene {
     guardian.level = savedGuardian.level;
     guardian.experience = savedGuardian.experience;
     guardian.maxHp = savedGuardian.maxHp;
-    guardian.hp = Phaser.Math.Clamp(savedGuardian.hp, 1, savedGuardian.maxHp);
+    guardian.hp = Phaser.Math.Clamp(
+      savedGuardian.hp,
+      savedGuardian.fainted ? 0 : 1,
+      savedGuardian.maxHp,
+    );
+    guardian.fainted = savedGuardian.fainted;
+    guardian.reviveAt = this.time.now + savedGuardian.reviveRemainingMs;
     guardian.nextMoveAt = this.time.now + 500;
     guardian.nextAttackAt = this.time.now + 900;
     guardian.nextSkillAt = this.time.now + 2_500;
@@ -580,7 +597,7 @@ export class WorldScene extends Phaser.Scene {
       .disableInteractive()
       .setPosition(this.player.x - TILE_SIZE, this.player.y)
       .setScale(0.72)
-      .setAlpha(0.8);
+      .setAlpha(guardian.fainted ? 0.25 : 0.8);
     this.registry.set(
       'interaction-message',
       `${guardian.combat.name} retornou como seu Guardião ativo.`,
@@ -593,12 +610,25 @@ export class WorldScene extends Phaser.Scene {
         if (isRespawnReady(true, time, monster.respawnAt)) this.respawnMonster(monster, time);
         continue;
       }
-      const distance = Phaser.Math.Distance.Between(
+      const playerDistance = Phaser.Math.Distance.Between(
         monster.container.x,
         monster.container.y,
         this.player.x,
         this.player.y,
       );
+      const companion =
+        this.guardian?.bonded && !this.guardian.fainted ? this.guardian : undefined;
+      const guardianDistance = companion
+        ? Phaser.Math.Distance.Between(
+            monster.container.x,
+            monster.container.y,
+            companion.container.x,
+            companion.container.y,
+          )
+        : Number.POSITIVE_INFINITY;
+      const targetsGuardian = guardianDistance < playerDistance;
+      const prey = targetsGuardian && companion ? companion.container : this.player;
+      const distance = Math.min(playerDistance, guardianDistance);
       const distanceToSpawn = Phaser.Math.Distance.Between(
         monster.container.x,
         monster.container.y,
@@ -622,18 +652,33 @@ export class WorldScene extends Phaser.Scene {
       if (monster.aiState === 'attacking') {
         monster.engaged = true;
         if (time >= monster.nextAttackAt) {
-          this.playerHp = applyDamage(
-            { hp: this.playerHp, maxHp: this.playerCombatData.maxHp },
-            rollDamage(monster.combat.damage),
-          ).hp;
+          const damage = rollDamage(monster.combat.damage);
           monster.nextAttackAt = time + 1200;
-          this.registry.set('interaction-message', `${monster.combat.name} atingiu você. HP: ${this.playerHp}.`);
-          if (this.playerHp <= 0) {
-            this.playerHp = this.playerCombatData.maxHp;
-            this.playerMana = this.playerCombatData.maxMp;
-            const spawn = this.requireObject('player_spawn');
-            this.player.setPosition(spawn.x ?? TILE_SIZE, spawn.y ?? TILE_SIZE);
-            this.registry.set('interaction-message', 'Você desmaiou e retornou ao acampamento.');
+          if (targetsGuardian && companion) {
+            companion.hp = applyGuardianDamage(companion.hp, damage);
+            companion.container.setAlpha(0.35);
+            this.time.delayedCall(
+              120,
+              () => !companion.fainted && companion.container.setAlpha(0.8),
+            );
+            this.registry.set(
+              'interaction-message',
+              `${monster.combat.name} atingiu ${companion.combat.name}. HP: ${companion.hp}.`,
+            );
+            if (companion.hp <= 0) this.faintGuardian(companion, time);
+          } else {
+            this.playerHp = applyDamage(
+              { hp: this.playerHp, maxHp: this.playerCombatData.maxHp },
+              damage,
+            ).hp;
+            this.registry.set('interaction-message', `${monster.combat.name} atingiu você. HP: ${this.playerHp}.`);
+            if (this.playerHp <= 0) {
+              this.playerHp = this.playerCombatData.maxHp;
+              this.playerMana = this.playerCombatData.maxMp;
+              const spawn = this.requireObject('player_spawn');
+              this.player.setPosition(spawn.x ?? TILE_SIZE, spawn.y ?? TILE_SIZE);
+              this.registry.set('interaction-message', 'Você desmaiou e retornou ao acampamento.');
+            }
           }
         }
         continue;
@@ -642,7 +687,7 @@ export class WorldScene extends Phaser.Scene {
       const destination =
         monster.aiState === 'returning'
           ? { x: monster.spawnX, y: monster.spawnY }
-          : { x: this.player.x, y: this.player.y };
+          : { x: prey.x, y: prey.y };
       if (monster.aiState === 'chasing') monster.engaged = true;
       const direction = {
         x: destination.x - monster.container.x,
@@ -881,6 +926,8 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     guardian.bonded = true;
+    guardian.fainted = false;
+    guardian.reviveAt = 0;
     guardian.nextMoveAt = this.time.now + 500;
     guardian.nextAttackAt = this.time.now + 900;
     guardian.nextSkillAt = this.time.now + 2_500;
@@ -994,6 +1041,23 @@ export class WorldScene extends Phaser.Scene {
   private updateCompanion(time: number, delta: number): void {
     const guardian = this.guardian;
     if (!guardian?.bonded) return;
+    if (guardian.fainted) {
+      if (isGuardianReviveReady(true, time, guardian.reviveAt)) {
+        guardian.fainted = false;
+        guardian.reviveAt = 0;
+        guardian.hp = guardianReviveHp(guardian.maxHp);
+        guardian.container
+          .setPosition(this.player.x - TILE_SIZE, this.player.y)
+          .setAlpha(0.8)
+          .setVisible(true);
+        this.registry.set(
+          'interaction-message',
+          `${guardian.combat.name} despertou com ${guardian.hp} HP e voltou à luta.`,
+        );
+        void this.persistSave();
+      }
+      return;
+    }
     const target =
       this.selectedMonster && !this.selectedMonster.defeated
         ? this.selectedMonster
@@ -1081,6 +1145,18 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
+  private faintGuardian(guardian: GuardianEntity, time: number): void {
+    guardian.hp = 0;
+    guardian.fainted = true;
+    guardian.reviveAt = time + GUARDIAN_REVIVE_MS;
+    guardian.container.setAlpha(0.22);
+    this.registry.set(
+      'interaction-message',
+      `${guardian.combat.name} desmaiou e despertará em 20 segundos.`,
+    );
+    void this.persistSave();
+  }
+
   private nearestInteraction(): InteractiveMarker | undefined {
     return nearestInRange(this.player, this.interactiveMarkers, TILE_SIZE * 1.4);
   }
@@ -1146,6 +1222,10 @@ export class WorldScene extends Phaser.Scene {
             maxHp: this.guardian.maxHp,
             level: this.guardian.level,
             experience: this.guardian.experience,
+            fainted: this.guardian.fainted,
+            reviveInMs: this.guardian.fainted
+              ? Math.max(0, this.guardian.reviveAt - this.time.now)
+              : 0,
           }
         : null,
       materials: this.materials,
@@ -1171,6 +1251,10 @@ export class WorldScene extends Phaser.Scene {
             experience: this.guardian.experience,
             x: this.guardian.container.x,
             y: this.guardian.container.y,
+            fainted: this.guardian.fainted,
+            reviveInMs: this.guardian.fainted
+              ? Math.max(0, this.guardian.reviveAt - this.time.now)
+              : 0,
           }
         : null,
     );
@@ -1190,6 +1274,10 @@ export class WorldScene extends Phaser.Scene {
               experience: this.guardian.experience,
               hp: this.guardian.hp,
               maxHp: this.guardian.maxHp,
+              fainted: this.guardian.fainted,
+              reviveRemainingMs: this.guardian.fainted
+                ? Math.max(0, this.guardian.reviveAt - this.time.now)
+                : 0,
             }
           : undefined;
       const merged = mergeRuntimeSave(this.sessionSave, {

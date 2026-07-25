@@ -15,6 +15,8 @@ const GuardianSaveSchema = z.object({
   experience: z.number().int().nonnegative(),
   hp: z.number().nonnegative(),
   maxHp: z.number().positive(),
+  fainted: z.boolean().default(false),
+  reviveRemainingMs: z.number().int().nonnegative().default(0),
 });
 
 export const GameSaveSchema = z.object({

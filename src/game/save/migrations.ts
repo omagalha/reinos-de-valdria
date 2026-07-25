@@ -136,6 +136,8 @@ export function migrateLegacyV2(
         experience: integerFrom(guardian.exp, 0),
         hp: numberFrom(guardian.hp, 1),
         maxHp: numberFrom(guardian.maxHp, 1, 1),
+        fainted: false,
+        reviveRemainingMs: 0,
       };
     });
   save.activeGuardianId = save.guardians[activeIndex]?.instanceId ?? null;
